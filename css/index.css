@@ -1,0 +1,29 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.wrap {
+    margin: 50px 200px;
+}
+
+.item {
+    width: 400px;
+    height: 300px;
+}
+
+.item1 {
+    background-color: #fcd;
+}
+
+.item2 {
+    background-color: #ce0;
+}
+
+.item3 {
+    background-color: #007;
+}
+
+.item4 {
+    background-color: #e71;
+}
