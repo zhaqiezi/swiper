@@ -64,6 +64,7 @@ window.onload = function() {
             this.w = css(arr[0], 'width');
             this.h = css(arr[0], 'height');
             this.status = 1;
+            this.doing = 1;
             this.max = arr.length * 3;
         }
         //动画效果 
@@ -86,7 +87,9 @@ window.onload = function() {
                         el.style[x.key] = parseInt(x.from) + x.n + dw;
                         x.from = css(el, x.key);
                     } else {
-                        clearTimer(self.cTimer, f);
+                        clearInterval(self.cTimer)
+                        self.cTimer = null;
+                        f();
                     }
                 }, 10)
             }
@@ -147,16 +150,40 @@ window.onload = function() {
                 self.offset();
             };
             this.pre.onclick = function() {
-                self.index--;
-                self.animation(self.box, {
-                    'left': -self.index * parseInt(self.w) + 'px'
-                }, self.options.tTime, function() {
-                    self.status = 1;
-                }, 'px');
-                self.judge(function() {
-                    css(self.box, 'left', -(self.index - 1) * parseInt(self.w) + 'px')
-                    console.log('现在是:' + self.index);
-                })
+                if (self.doing) {
+                    self.doing = 0;
+                    self.index--;
+                    if (self.cTimer) {
+                        clearInterval(self.cTimer);
+                        self.cTimer = null;
+                    }
+                    self.animation(self.box, {
+                        'left': -self.index * parseInt(self.w) + 'px'
+                    }, self.options.tTime, function() {
+                        self.doing = 1;
+                        self.judge(function() {
+                            css(self.box, 'left', -self.index * parseInt(self.w) + 'px');
+                        })
+                    }, 'px');
+                }
+            }
+            this.next.onclick = function() {
+                if (self.doing) {
+                    self.doing = 0;
+                    self.index++;
+                    if (self.cTimer) {
+                        clearInterval(self.cTimer);
+                        self.cTimer = null;
+                    }
+                    self.judge(function() {
+                        css(self.box, 'left', -(self.index - 1) * parseInt(self.w) + 'px');
+                    })
+                    self.animation(self.box, {
+                        'left': -self.index * parseInt(self.w) + 'px'
+                    }, self.options.tTime, function() {
+                        self.doing = 1;
+                    }, 'px');
+                }
             }
             return this;
         };
@@ -178,7 +205,7 @@ window.onload = function() {
                 this.index = this.arr.length;
                 f();
             } else if (this.index <= 0) {
-                this.index = this.arr.length + 1;
+                this.index = this.arr.length;
                 f();
             }
         };
