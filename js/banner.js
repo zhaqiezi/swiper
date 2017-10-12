@@ -14,8 +14,16 @@ window.onload = function() {
         }
         el.style[sty] = val;
     }
-
-    // 选择器
+    var addHandler = function(element, type, handler) {
+            if (element.addEventListener) {
+                element.addEventListener(type, handler, false);
+            } else if (element.attachEvent) {
+                element.attachEvent('on' + type, handler);
+            } else {
+                element['on' + type] = handler;
+            }
+        }
+        // 选择器
     function selectEl(selector, parent) {
         var pr = selector.substring(0, 1);
         var s = selector.substring(1);
@@ -24,20 +32,19 @@ window.onload = function() {
             arr.push(document.getElementById(s))
         } else if (pr == '.') {
             var allE = parent ? parent.getElementsByTagName('*') : document.getElementsByTagName('*');
-
             var reg = new RegExp("(^|\\s)" + s + "($|\\s)");
             for (var i = 0; i < allE.length; i++) {
                 if (reg.test(allE[i].className)) arr.push(allE[i]);
             }
             return arr;
         } else {
-            arr = document.getElementsByTagName(selector);
+            arr = parent ? parent.getElementsByTagName(selector) : document.getElementsByTagName(selector);
         }
         return arr;
     }
 
     // 合并两个对象的函数
-    var extend = function(o, p) {
+    var combineObj = function(o, p) {
         var obj = {};
         for (prop in o) {
             obj[prop] = o[prop];
@@ -48,6 +55,22 @@ window.onload = function() {
         return obj;
     }
 
+    //添加class
+    var addClass = function(el, cls) {
+        var reg = new RegExp("(^|\\s)" + cls + "($|\\s)");
+        if (!reg.test(el.className)) {
+            el.className += " " + cls;
+        }
+    }
+
+    //清除class
+    var removeClass = function(el, cls) {
+        var reg = new RegExp("(^|\\s)" + cls + "($|\\s)");
+        if (reg.test(el.className)) {
+            el.className = el.className.replace(reg, '');
+        }
+    }
+
     var swiper = (function() {
         // 构造函数
         function Banner(el, arr, options) {
@@ -56,7 +79,7 @@ window.onload = function() {
             this.options = options; //配置
             this.timer = null; //轮播定时器
             this.cTimer = null; //动画效果定时器
-            this.index = options.index + arr.length; //轮播的索引
+            this.index = options.index + arr.length - 1; //轮播的索引
             this.w = css(arr[0], 'width'); //宽度
             this.h = css(arr[0], 'height'); //高度
             this.status = 1; //定时器运行的状态
@@ -139,11 +162,13 @@ window.onload = function() {
                 'height': self.h,
                 'overflow': 'hidden'
             })
-            if (op.way == 'move' && !op.vertical)
+            if (op.way == 'move' && !op.vertical) {
                 css(box, {
                     'width': w + 'px',
                     'left': -self.index * parseInt(self.w) + 'px'
                 });
+                self.dotChange();
+            }
 
             return this;
         };
@@ -158,29 +183,32 @@ window.onload = function() {
             this.el.onmouseleave = function() {
                 self.offset();
             };
-            this.pre.addEventListener(self.options.event, function() {
+            addHandler(self.pre, self.options.event, function() {
                 if (self.status) {
                     self.status = 0;
                     self.index--;
                     self.judge(function() {
                         css(self.box, 'left', -(self.index + 1) * parseInt(self.w) + 'px');
                     })
+                    self.dotChange();
                     self.animation(self.box, {
                         'left': -self.index * parseInt(self.w) + 'px'
                     }, self.options.tTime, function() {
                         self.status = 1;
                     }, 'px');
                 }
-            })
-            this.next.addEventListener(self.options.event, function() {
+            });
+            addHandler(this.next, self.options.event, function() {
                 self.levelMove(self);
-            })
+            });
             for (var i = 0; i < this.dots.length; i++) {
                 this.dots[i].index = i + this.arr.length;
-                this.dots[i].addEventListener(self.options.event, function() {
+                addHandler(this.dots[i], self.options.event, function() {
                     if (self.status) {
                         self.index = this.index;
                         self.status = 0;
+                        self.dotChange();
+                        addClass(this, 'active');
                         self.animation(self.box, {
                             'left': -self.index * parseInt(self.w) + 'px'
                         }, self.options.tTime, function() {
@@ -192,7 +220,18 @@ window.onload = function() {
             return this;
         };
 
-        // 轮播效果
+        // 改变分页器选中样式
+        Banner.prototype.dotChange = function() {
+            var self = this;
+            if (self.dots) {
+                for (var i = 0; i < self.dots.length; i++) {
+                    removeClass(self.dots[i], 'active')
+                }
+                addClass(self.dots[self.index - self.arr.length], 'active');
+            }
+        }
+
+        // 配置
         Banner.prototype.offset = function() {
             var self = this;
             var op = this.options;
@@ -225,6 +264,7 @@ window.onload = function() {
                 self.judge(function() {
                     css(self.box, 'left', -(self.index - 1) * parseInt(self.w) + 'px')
                 })
+                self.dotChange();
                 self.animation(self.box, {
                     'left': -self.index * parseInt(self.w) + 'px'
                 }, self.options.tTime, function() {
@@ -245,7 +285,7 @@ window.onload = function() {
             vertical: false,
             way: 'move',
             tTime: 500,
-            index: 0,
+            index: 1,
             wTime: 2000,
             arrow: true,
             dots: true,
@@ -254,7 +294,7 @@ window.onload = function() {
 
         // 初始化
         var init = function(options) {
-            var op = extend(defaultO, options);
+            var op = combineObj(defaultO, options);
             var wrap = selectEl(options.el)[0];
             var el = wrap.getElementsByTagName('*');
             var arr = [];
@@ -270,5 +310,6 @@ window.onload = function() {
     }());
     swiper({
         el: '.wrap',
+        arrow: false
     })
 }

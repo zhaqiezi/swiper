@@ -9,7 +9,7 @@ li {
 }
 
 .swiper .box>* {
-    float: left;
+    display: inline-block
 }
 
 .swiper .box {
@@ -63,4 +63,8 @@ li {
     border-radius: 50%;
     background-color: #fff;
     cursor: pointer;
+}
+
+.swiper .dots-list .dot-item.active {
+    background-color: #eed708;
 }
