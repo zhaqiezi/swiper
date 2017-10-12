@@ -237,21 +237,15 @@ window.onload = function() {
             if (ops.arrow) {
                 addHandler(self.pre, self.options.event, function() {
                     if (self.status) {
-                        self.status = 0;
                         self.index--;
-                        self.judge(function() {
-                            css(self.box, 'left', -(self.index + 1) * parseInt(self.w) + 'px');
-                        })
-                        self.dotChange();
-                        self.animation(self.box, {
-                            'left': -self.index * parseInt(self.w) + 'px'
-                        }, self.options.tTime, function() {
-                            self.status = 1;
-                        }, 'px');
+                        self.levelMove();
                     }
                 });
                 addHandler(this.next, self.options.event, function() {
-                    self.levelMove(self);
+                    if (self.status) {
+                        self.index++;
+                        self.levelMove()
+                    }
                 });
             }
             return this;
@@ -276,37 +270,37 @@ window.onload = function() {
                 return this;
             } else if (!op.vertical) {
                 this.setTimer(function() {
-                    self.levelMove(self);
+                    if (self.status) {
+                        self.index++;
+                        self.levelMove(self);
+                    }
                 });
                 return this;
             }
         };
 
         // 判断迭代是否重置
-        Banner.prototype.judge = function(f) {
+        Banner.prototype.judge = function() {
             if (this.index >= this.arr.length * 2) {
                 this.index = this.arr.length;
+                css(this.box, 'left', -(this.index - 1) * parseInt(this.w) + 'px');
             } else if (this.index <= this.arr.length - 1) {
                 this.index = this.arr.length * 2 - 1;
+                css(this.box, 'left', -(this.index + 1) * parseInt(this.w) + 'px');
             }
-            f();
         };
 
         // 水平移动的效果 
-        Banner.prototype.levelMove = function(self) {
-            if (self.status) {
-                self.status = 0;
-                self.index++;
-                self.judge(function() {
-                    css(self.box, 'left', -(self.index - 1) * parseInt(self.w) + 'px')
-                })
-                self.dotChange();
-                self.animation(self.box, {
-                    'left': -self.index * parseInt(self.w) + 'px'
-                }, self.options.tTime, function() {
-                    self.status = 1;
-                }, 'px');
-            }
+        Banner.prototype.levelMove = function() {
+            var self = this;
+            self.status = 0;
+            self.judge()
+            self.dotChange();
+            self.animation(self.box, {
+                'left': -self.index * parseInt(self.w) + 'px'
+            }, self.options.tTime, function() {
+                self.status = 1;
+            }, 'px');
         };
 
         // 设置定时器
@@ -325,15 +319,25 @@ window.onload = function() {
 
         // 水平平移方向的动画效果
         LevelMove.prototype.offset = function() {
-            this.judge(function() {
-                css(this.box, 'left', -(this.index - 1) * parseInt(this.w) + 'px')
-            })
+            this.status;
+            this.judge()
             this.dotChange();
             this.animation(this.box, {
                 'left': -this.index * parseInt(this.w) + 'px'
             }, this.options.tTime, function() {
                 this.status = 1;
             }, 'px');
+        }
+
+        //水平平移效果的判断
+        LevelMove.prototype.judge = function() {
+            if (this.index >= this.arr.length * 2) {
+                this.index = this.arr.length;
+                css(this.box, 'left', -(this.index - 1) * parseInt(this.w) + 'px');
+            } else if (this.index <= this.arr.length - 1) {
+                this.index = this.arr.length * 2 - 1;
+                css(this.box, 'left', -(this.index + 1) * parseInt(this.w) + 'px');
+            }
         }
 
         // 默认值
