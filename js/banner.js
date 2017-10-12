@@ -14,16 +14,19 @@ window.onload = function() {
         }
         el.style[sty] = val;
     }
+
+    //添加事件 
     var addHandler = function(element, type, handler) {
-            if (element.addEventListener) {
-                element.addEventListener(type, handler, false);
-            } else if (element.attachEvent) {
-                element.attachEvent('on' + type, handler);
-            } else {
-                element['on' + type] = handler;
-            }
+        if (element.addEventListener) {
+            element.addEventListener(type, handler, false);
+        } else if (element.attachEvent) {
+            element.attachEvent('on' + type, handler);
+        } else {
+            element['on' + type] = handler;
         }
-        // 选择器
+    }
+
+    // 选择器
     function selectEl(selector, parent) {
         var pr = selector.substring(0, 1);
         var s = selector.substring(1);
@@ -71,6 +74,36 @@ window.onload = function() {
         }
     }
 
+    // 继承方法
+    var extend = function(parentClass, childClass) {
+        var F = function() {};
+        F.prototype = parentClass.prototype;
+        childClass.prototype = new F();
+    }
+
+    // 动画
+    var animation = function(el, styles, t, f, dw) {
+        var obj = {};
+        for (var key in styles) {
+            if (!styles.hasOwnProperty(key)) continue;
+            obj.key = key;
+            obj.from = css(el, key);
+            obj.to = styles[key];
+            obj.n = (parseInt(obj.to) - parseInt(obj.from)) * 10 / t;
+        }
+        var timer = setInterval(function() {
+            if (css(el, obj.key) !== obj.to) {
+                el.style[obj.key] = parseInt(obj.from) + obj.n + dw;
+                obj.from = css(el, obj.key);
+            } else {
+                clearInterval(timer)
+                timer = null;
+                f();
+            }
+        }, 10)
+    };
+
+    // 定义轮播图
     var swiper = (function() {
         // 构造函数
         function Banner(el, arr, options) {
@@ -176,6 +209,7 @@ window.onload = function() {
         //绑定事件 
         Banner.prototype.bindEvent = function() {
             var self = this;
+            var ops = self.options;
             this.el.onmouseenter = function() {
                 clearInterval(self.timer);
                 self.timer = null;
@@ -183,39 +217,42 @@ window.onload = function() {
             this.el.onmouseleave = function() {
                 self.offset();
             };
-            addHandler(self.pre, self.options.event, function() {
-                if (self.status) {
-                    self.status = 0;
-                    self.index--;
-                    self.judge(function() {
-                        css(self.box, 'left', -(self.index + 1) * parseInt(self.w) + 'px');
+            if (ops.dots) {
+                for (var i = 0; i < this.dots.length; i++) {
+                    this.dots[i].index = i + this.arr.length;
+                    addHandler(this.dots[i], self.options.event, function() {
+                        if (self.status) {
+                            self.index = this.index;
+                            self.status = 0;
+                            self.dotChange();
+                            self.animation(self.box, {
+                                'left': -self.index * parseInt(self.w) + 'px'
+                            }, self.options.tTime, function() {
+                                self.status = 1;
+                            }, 'px');
+                        }
                     })
-                    self.dotChange();
-                    self.animation(self.box, {
-                        'left': -self.index * parseInt(self.w) + 'px'
-                    }, self.options.tTime, function() {
-                        self.status = 1;
-                    }, 'px');
                 }
-            });
-            addHandler(this.next, self.options.event, function() {
-                self.levelMove(self);
-            });
-            for (var i = 0; i < this.dots.length; i++) {
-                this.dots[i].index = i + this.arr.length;
-                addHandler(this.dots[i], self.options.event, function() {
+            }
+            if (ops.arrow) {
+                addHandler(self.pre, self.options.event, function() {
                     if (self.status) {
-                        self.index = this.index;
                         self.status = 0;
+                        self.index--;
+                        self.judge(function() {
+                            css(self.box, 'left', -(self.index + 1) * parseInt(self.w) + 'px');
+                        })
                         self.dotChange();
-                        addClass(this, 'active');
                         self.animation(self.box, {
                             'left': -self.index * parseInt(self.w) + 'px'
                         }, self.options.tTime, function() {
                             self.status = 1;
                         }, 'px');
                     }
-                })
+                });
+                addHandler(this.next, self.options.event, function() {
+                    self.levelMove(self);
+                });
             }
             return this;
         };
@@ -249,11 +286,10 @@ window.onload = function() {
         Banner.prototype.judge = function(f) {
             if (this.index >= this.arr.length * 2) {
                 this.index = this.arr.length;
-                f();
             } else if (this.index <= this.arr.length - 1) {
                 this.index = this.arr.length * 2 - 1;
-                f();
             }
+            f();
         };
 
         // 水平移动的效果 
@@ -280,6 +316,26 @@ window.onload = function() {
             this.timer = setInterval(f, self.options.wTime + self.options.tTime);
         };
 
+        // 水平方向的构造函数
+        function LevelMove(el, arr, op) {
+            Banner.call(this, el, arr, op);
+        }
+
+        extend(Banner, LevelMove);
+
+        // 水平平移方向的动画效果
+        LevelMove.prototype.offset = function() {
+            this.judge(function() {
+                css(this.box, 'left', -(this.index - 1) * parseInt(this.w) + 'px')
+            })
+            this.dotChange();
+            this.animation(this.box, {
+                'left': -this.index * parseInt(this.w) + 'px'
+            }, this.options.tTime, function() {
+                this.status = 1;
+            }, 'px');
+        }
+
         // 默认值
         var defaultO = {
             vertical: false,
@@ -303,13 +359,13 @@ window.onload = function() {
                     arr.push(el[i]);
                 }
             }
-            var banner = (new Banner(wrap, arr, op)).structure().offset().bindEvent();
+            var banner = new Banner(wrap, arr, op);
+            banner.structure().offset().bindEvent();
             console.log(banner);
         };
         return init;
     }());
     swiper({
-        el: '.wrap',
-        arrow: false
+        el: '.wrap'
     })
 }
