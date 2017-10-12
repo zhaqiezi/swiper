@@ -98,7 +98,7 @@ window.onload = function() {
             obj.n = (parseInt(obj.to) - parseInt(obj.from)) * 10 / t;
         }
         var timer = setInterval(function() {
-            if (css(el, obj.key) !== obj.to) {
+            if (obj.from !== obj.to) {
                 el.style[obj.key] = parseInt(obj.from) + obj.n + dw;
                 obj.from = css(el, obj.key);
             } else {
@@ -124,34 +124,6 @@ window.onload = function() {
             this.status = 1; //定时器运行的状态
         }
 
-        //动画效果 
-        Banner.prototype.animation = function(el, o, t, f, dw) {
-            var self = this;
-            var arr = [];
-            for (var key in o) {
-                if (!o.hasOwnProperty(key)) continue;
-                var p = {};
-                p.key = key;
-                p.from = css(el, key);
-                p.to = o[key];
-                p.n = (parseInt(p.to) - parseInt(p.from)) * 30 / t;
-                arr.push(p);
-            }
-            for (var i = 0; i < arr.length; i++) {
-                var x = arr[i];
-                self.cTimer = setInterval(function() {
-                    if (css(el, x.key) !== x.to) {
-                        console.log(x.to);
-                        el.style[x.key] = parseInt(x.from) + x.n + dw;
-                        x.from = css(el, x.key);
-                    } else {
-                        clearInterval(self.cTimer)
-                        self.cTimer = null;
-                        f();
-                    }
-                }, 30)
-            }
-        };
 
         // 结构生成
         Banner.prototype.structure = function() {
@@ -302,7 +274,7 @@ window.onload = function() {
             this.status = 0;
             this.judge();
             this.dotChange();
-            this.animation(this.box, {
+            animation(this.box, {
                 'left': -this.index * parseInt(this.w) + 'px'
             }, this.options.tTime, function() {
                 self.status = 1;
@@ -343,7 +315,7 @@ window.onload = function() {
             this.status = 0;
             this.judge();
             this.dotChange();
-            this.animation(this.box, {
+            animation(this.box, {
                 'top': -this.index * parseInt(this.h) + 'px'
             }, this.options.tTime, function() {
                 self.status = 1;
@@ -402,7 +374,7 @@ window.onload = function() {
     }());
     swiper({
         el: '.wrap',
-        autoPlay: false
-            // vertical: true
+        // autoPlay: false,
+        vertical: true
     })
 }
