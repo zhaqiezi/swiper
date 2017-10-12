@@ -1,5 +1,4 @@
 window.onload = function() {
-
     // 改变样式,查看样式
     var css = function(el, sty, val) {
         if (arguments.length == 2 && typeof arguments[1] == 'object') {
@@ -16,31 +15,27 @@ window.onload = function() {
         el.style[sty] = val;
     }
 
-    // 清除定时器
-    var clearTimer = function(timer, f) {
-        clearInterval(timer);
-        timer = null;
-        if (f && typeof f == 'function') f();
-    };
-
     // 选择器
-    function selectEl(selector) {
+    function selectEl(selector, parent) {
         var pr = selector.substring(0, 1);
         var s = selector.substring(1);
+        var arr = [];
         if (pr == '#') {
-            return document.getElementById(s);
+            arr.push(document.getElementById(s))
         } else if (pr == '.') {
-            var allE = document.getElementsByTagName('*');
-            var arr = [];
+            var allE = parent ? parent.getElementsByTagName('*') : document.getElementsByTagName('*');
+
             var reg = new RegExp("(^|\\s)" + s + "($|\\s)");
             for (var i = 0; i < allE.length; i++) {
                 if (reg.test(allE[i].className)) arr.push(allE[i]);
             }
-            return arr[0];
+            return arr;
         } else {
-            return document.getElementsByTagName(selector);
+            arr = document.getElementsByTagName(selector);
         }
+        return arr;
     }
+
     // 合并两个对象的函数
     var extend = function(o, p) {
         var obj = {};
@@ -52,21 +47,21 @@ window.onload = function() {
         }
         return obj;
     }
+
     var swiper = (function() {
         // 构造函数
         function Banner(el, arr, options) {
-            this.el = el;
-            this.arr = arr;
-            this.options = options;
-            this.timer = null;
-            this.cTimer = null;
-            this.index = options.index + arr.length;
-            this.w = css(arr[0], 'width');
-            this.h = css(arr[0], 'height');
-            this.status = 1;
-            this.doing = 1;
-            this.max = arr.length * 3;
+            this.el = el; //最外层元素
+            this.arr = arr; //原始的几个轮播项
+            this.options = options; //配置
+            this.timer = null; //轮播定时器
+            this.cTimer = null; //动画效果定时器
+            this.index = options.index + arr.length; //轮播的索引
+            this.w = css(arr[0], 'width'); //宽度
+            this.h = css(arr[0], 'height'); //高度
+            this.status = 1; //定时器运行的状态
         }
+
         //动画效果 
         Banner.prototype.animation = function(el, o, t, f, dw) {
             var self = this;
@@ -94,6 +89,7 @@ window.onload = function() {
                 }, 10)
             }
         };
+
         // 结构生成
         Banner.prototype.structure = function() {
             var self = this;
@@ -123,6 +119,18 @@ window.onload = function() {
                 x.appendChild(arrowP);
                 x.appendChild(arrowN);
             }
+            //加上导航 
+            if (op.dots) {
+                var dotList = document.createElement('ul');
+                dotList.className = 'dots-list';
+                var dots = '';
+                for (var i = 0; i < self.arr.length; i++) {
+                    dots = dots + '<li class="dot-item">' + (i + 1) + '</li>';
+                }
+                dotList.innerHTML = dots;
+                this.dots = selectEl('.dot-item', dotList);
+                x.appendChild(dotList);
+            }
             x.appendChild(box)
             el.innerHTML = '';
             el.appendChild(x);
@@ -144,111 +152,93 @@ window.onload = function() {
         Banner.prototype.bindEvent = function() {
             var self = this;
             this.el.onmouseenter = function() {
-                clearTimer(self.timer);
+                clearInterval(self.timer);
+                self.timer = null;
             };
             this.el.onmouseleave = function() {
                 self.offset();
             };
-            this.pre.onclick = function() {
-                if (self.doing) {
-                    self.doing = 0;
+            this.pre.addEventListener(self.options.event, function() {
+                if (self.status) {
+                    self.status = 0;
                     self.index--;
-                    if (self.cTimer) {
-                        clearInterval(self.cTimer);
-                        self.cTimer = null;
-                    }
-                    self.animation(self.box, {
-                        'left': -self.index * parseInt(self.w) + 'px'
-                    }, self.options.tTime, function() {
-                        self.doing = 1;
-                        self.judge(function() {
-                            css(self.box, 'left', -self.index * parseInt(self.w) + 'px');
-                        })
-                    }, 'px');
-                }
-            }
-            this.next.onclick = function() {
-                if (self.doing) {
-                    self.doing = 0;
-                    self.index++;
-                    if (self.cTimer) {
-                        clearInterval(self.cTimer);
-                        self.cTimer = null;
-                    }
                     self.judge(function() {
-                        css(self.box, 'left', -(self.index - 1) * parseInt(self.w) + 'px');
+                        css(self.box, 'left', -(self.index + 1) * parseInt(self.w) + 'px');
                     })
                     self.animation(self.box, {
                         'left': -self.index * parseInt(self.w) + 'px'
                     }, self.options.tTime, function() {
-                        self.doing = 1;
+                        self.status = 1;
                     }, 'px');
                 }
+            })
+            this.next.addEventListener(self.options.event, function() {
+                self.levelMove(self);
+            })
+            for (var i = 0; i < this.dots.length; i++) {
+                this.dots[i].index = i + this.arr.length;
+                this.dots[i].addEventListener(self.options.event, function() {
+                    if (self.status) {
+                        self.index = this.index;
+                        self.status = 0;
+                        self.animation(self.box, {
+                            'left': -self.index * parseInt(self.w) + 'px'
+                        }, self.options.tTime, function() {
+                            self.status = 1;
+                        }, 'px');
+                    }
+                })
             }
             return this;
         };
 
         // 轮播效果
         Banner.prototype.offset = function() {
+            var self = this;
             var op = this.options;
             if (op.way === 'fade') {
                 return this;
             } else if (!op.vertical) {
-                this.move();
+                this.setTimer(function() {
+                    self.levelMove(self);
+                });
                 return this;
             }
         };
 
         // 判断迭代是否重置
         Banner.prototype.judge = function(f) {
-            if (this.index >= this.max) {
+            if (this.index >= this.arr.length * 2) {
                 this.index = this.arr.length;
                 f();
-            } else if (this.index <= 0) {
-                this.index = this.arr.length;
+            } else if (this.index <= this.arr.length - 1) {
+                this.index = this.arr.length * 2 - 1;
                 f();
             }
         };
 
         // 水平移动的效果 
-        Banner.prototype.move = function() {
-            var box = this.box;
-            var self = this;
-            this.timer = setInterval(function() {
-                if (self.status != 1) return;
+        Banner.prototype.levelMove = function(self) {
+            if (self.status) {
                 self.status = 0;
                 self.index++;
                 self.judge(function() {
-                    css(box, 'left', -(self.index - 1) * parseInt(self.w) + 'px')
+                    css(self.box, 'left', -(self.index - 1) * parseInt(self.w) + 'px')
                 })
-                self.animation(box, {
+                self.animation(self.box, {
                     'left': -self.index * parseInt(self.w) + 'px'
                 }, self.options.tTime, function() {
                     self.status = 1;
                 }, 'px');
-            }, self.options.wTime + self.options.tTime);
+            }
         };
-        //设置定时器
-        // Banner.prototype.setTimer = function(o) {
-        //     var box = this.box;
-        //     var self = this;
-        //     this.timer = setInterval(function() {
-        //         if (self.status != 1) return;
-        //         self.status = 0;
-        //         self.index++;
-        //         if (self.index >= self.arr.length * 3) {
-        //             self.index = self.arr.length;
-        //             css(box, 'left', -(self.index - 1) * parseInt(self.w) + 'px')
-        //         }
-        //         self.animation(box, {
-        //             'left': -self.index * parseInt(self.w) + 'px'
-        //         }, self.options.tTime, function() {
-        //             self.status = 1;
-        //         });
-        //     }, self.options.wTime + self.options.tTime);
-        // };
 
-
+        // 设置定时器
+        Banner.prototype.setTimer = function(f) {
+            // var box = this.box;
+            var self = this;
+            this.timer = setInterval(f, self.options.wTime + self.options.tTime);
+        };
 
         // 默认值
         var defaultO = {
@@ -257,13 +247,15 @@ window.onload = function() {
             tTime: 500,
             index: 0,
             wTime: 2000,
-            arrow: true
+            arrow: true,
+            dots: true,
+            event: 'click'
         };
 
         // 初始化
         var init = function(options) {
             var op = extend(defaultO, options);
-            var wrap = selectEl(options.el);
+            var wrap = selectEl(options.el)[0];
             var el = wrap.getElementsByTagName('*');
             var arr = [];
             for (var i = 0; i < el.length; i++) {
@@ -271,13 +263,12 @@ window.onload = function() {
                     arr.push(el[i]);
                 }
             }
-            var banner = new Banner(wrap, arr, op);
-            banner.structure().offset().bindEvent();
+            var banner = (new Banner(wrap, arr, op)).structure().offset().bindEvent();
             console.log(banner);
         };
         return init;
     }());
     swiper({
-        el: '.wrap'
+        el: '.wrap',
     })
 }
