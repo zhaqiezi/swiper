@@ -88,20 +88,32 @@ window.onload = function() {
     }
 
     // 动画
-    var animation = function(el, styles, t, f, dw) {
-        var obj = {};
-        for (var key in styles) {
-            if (!styles.hasOwnProperty(key)) continue;
-            obj.key = key;
-            obj.from = css(el, key);
-            obj.to = styles[key];
-            obj.n = (parseInt(obj.to) - parseInt(obj.from)) * 10 / t;
+    var animation = function(el, o, t, f, dw) {
+        var arr = [];
+        var p = {};
+        for (var key in o) {
+            if (!o.hasOwnProperty(key)) continue;
+            p = {};
+            p.key = key;
+            p.from = css(el, key);
+            p.to = o[key];
+            p.n = (parseInt(p.to) - parseInt(p.from)) * 10 / t;
+            p.bool = 0;
+            arr.push(p);
         }
         var timer = setInterval(function() {
-            if (obj.from !== obj.to) {
-                el.style[obj.key] = parseInt(obj.from) + obj.n + dw;
-                obj.from = css(el, obj.key);
-            } else {
+            console.log(arr[0].n);
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i].from !== arr[i].to) {
+                    el.style[arr[i].key] = parseInt(arr[i].from) + arr[i].n + dw;
+                    arr[i].from = css(el, arr[i].key);
+                } else {
+                    arr[i].bool = 1;
+                }
+            }
+            if (arr.every(function(item) {
+                    return item.bool == 1;
+                })) {
                 clearInterval(timer)
                 timer = null;
                 f();
@@ -124,7 +136,6 @@ window.onload = function() {
             this.status = 1; //定时器运行的状态
         }
 
-
         // 结构生成
         Banner.prototype.structure = function() {
             var op = this.options;
@@ -144,9 +155,9 @@ window.onload = function() {
                 var arrowP = document.createElement('button');
                 var arrowN = document.createElement('button');
                 arrowP.className = 'pre';
-                arrowP.innerHTML = '上一个';
+                arrowP.innerHTML = '<';
                 arrowN.className = 'next';
-                arrowN.innerHTML = '下一个';
+                arrowN.innerHTML = '>';
                 this.pre = arrowP;
                 this.next = arrowN;
                 x.appendChild(arrowP);
@@ -202,13 +213,13 @@ window.onload = function() {
                 }
             }
             if (ops.arrow) {
-                addHandler(self.pre, self.options.event, function() {
+                addHandler(self.pre, 'click', function() {
                     if (self.status) {
                         self.index--;
                         self.offset();
                     }
                 });
-                addHandler(this.next, self.options.event, function() {
+                addHandler(this.next, 'click', function() {
                     if (self.status) {
                         self.index++;
                         self.offset();
@@ -324,15 +335,16 @@ window.onload = function() {
 
         //垂直平移效果的判断
         VerticalMove.prototype.judge = function() {
-                if (this.index >= this.arr.length * 2) {
-                    this.index = this.arr.length;
-                    css(this.box, 'top', -(this.index - 1) * parseInt(this.h) + 'px');
-                } else if (this.index <= this.arr.length - 1) {
-                    this.index = this.arr.length * 2 - 1;
-                    css(this.box, 'top', -(this.index + 1) * parseInt(this.h) + 'px');
-                }
+            if (this.index >= this.arr.length * 2) {
+                this.index = this.arr.length;
+                css(this.box, 'top', -(this.index - 1) * parseInt(this.h) + 'px');
+            } else if (this.index <= this.arr.length - 1) {
+                this.index = this.arr.length * 2 - 1;
+                css(this.box, 'top', -(this.index + 1) * parseInt(this.h) + 'px');
             }
-            // 默认值
+        }
+
+        // 默认值
         var defaultO = {
             vertical: false,
             way: 'move',
@@ -375,6 +387,7 @@ window.onload = function() {
     swiper({
         el: '.wrap',
         // autoPlay: false,
-        vertical: true
+        // vertical: true
+        event: 'mouseover'
     })
 }

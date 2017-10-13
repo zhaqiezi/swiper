@@ -33,19 +33,23 @@ li {
     position: absolute;
     top: 50%;
     margin-top: -20px;
-    width: 20px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     color: #fff;
     background-color: #000;
+    border-radius: 50%;
+    border: none;
+    outline: none;
+    cursor: pointer;
     z-index: 2;
 }
 
 .swiper .pre {
-    left: 20%;
+    left: 10%;
 }
 
 .swiper .next {
-    right: 20%;
+    right: 10%;
 }
 
 .swiper .dots-list {

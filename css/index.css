@@ -5,14 +5,15 @@ body {
 
 .wrap {
     margin: 50px 200px;
-    width: 400px;
+    width: 800px;
     height: 300px;
 }
 
-.item {
+
+/* .item {
     width: 400px;
     height: 300px;
-}
+} */
 
 .item1 {
     background-color: #fcd;
