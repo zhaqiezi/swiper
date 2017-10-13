@@ -21,6 +21,8 @@ body {
 
 .item2 {
     background-color: #ce0;
+    width: 1000px;
+    height: 10px;
 }
 
 .item3 {
@@ -29,4 +31,8 @@ body {
 
 .item4 {
     background-color: #e71;
+}
+
+#wrap {
+    height: 600px;
 }

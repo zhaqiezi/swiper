@@ -158,336 +158,425 @@ function fadeOut(el, t, f) {
         }
     }, time);
 }
-window.onload = function() {
-    // 定义轮播图
-    var swiper = (function() {
-        // 构造函数
-        function Banner(el, arr, options) {
-            this.el = el; //最外层元素
-            this.arr = arr; //原始的几个轮播项
-            this.options = options; //配置
-            this.timer = null; //轮播定时器
-            this.cTimer = null; //动画效果定时器
-            this.index = options.index + arr.length - 1; //轮播的索引
-            this.w = css(el, 'width'); //宽度
-            this.h = css(el, 'height'); //高度
-            this.status = 1; //定时器运行的状态
-            this.pIndex = this.index; //前一个索引
+// 定义轮播图
+var swiper = (function() {
+    // 构造函数
+    function Banner(el, arr, options) {
+        this.el = el; //最外层元素
+        this.arr = arr; //原始的几个轮播项
+        this.options = options; //配置
+        this.timer = null; //轮播定时器
+        this.cTimer = null; //动画效果定时器
+        this.index = options.index + arr.length - 1; //轮播的索引
+        this.w = css(el, 'width'); //宽度
+        this.h = css(el, 'height'); //高度
+        this.status = 1; //定时器运行的状态
+        this.pIndex = this.index; //前一个索引
+    }
+
+    // 结构生成
+    Banner.prototype.structure = function() {
+        var op = this.options;
+        var el = this.el;
+        var arr = this.arr.concat(this.arr).concat(this.arr);
+        var x = document.createElement('div');
+        x.className = "swiper";
+        var box = document.createElement('div');
+        box.className = 'box';
+        this.box = box;
+        for (var i = 0; i < arr.length; i++) {
+            box.appendChild(arr[i].cloneNode(true));
         }
 
-        // 结构生成
-        Banner.prototype.structure = function() {
-            var op = this.options;
-            var el = this.el;
-            var arr = this.arr.concat(this.arr).concat(this.arr);
-            var x = document.createElement('div');
-            x.className = "swiper";
-            var box = document.createElement('div');
-            box.className = 'box';
-            this.box = box;
-            for (var i = 0; i < arr.length; i++) {
-                box.appendChild(arr[i].cloneNode(true));
-            }
-
-            // 箭头
-            if (op.arrow) {
-                var arrowP = document.createElement('button');
-                var arrowN = document.createElement('button');
-                arrowP.className = 'pre';
-                arrowP.innerHTML = '<';
-                arrowN.className = 'next';
-                arrowN.innerHTML = '>';
-                this.pre = arrowP;
-                this.next = arrowN;
-                x.appendChild(arrowP);
-                x.appendChild(arrowN);
-            }
-
-            //分页器
-            if (op.dots) {
-                var dotList = document.createElement('ul');
-                dotList.className = 'dots-list';
-                var dots = '';
-                for (var i = 0; i < this.arr.length; i++) {
-                    dots = dots + '<li class="dot-item">' + (i + 1) + '</li>';
-                }
-                dotList.innerHTML = dots;
-                this.dots = selectEl('.dot-item', dotList);
-                x.appendChild(dotList);
-                this.dotChange();
-            }
-
-            x.appendChild(box)
-            el.innerHTML = '';
-            el.appendChild(x);
-            var allItem = selectEl('>*', box);
-            this.allItem = allItem;
-            for (var i = 0; i < allItem.length; i++) {
-                css(allItem[i], {
-                    'width': this.w,
-                    'height': this.h
-                });
-            }
-            return this;
-        };
-
-        //绑定事件 
-        Banner.prototype.bindEvent = function() {
-            var self = this;
-            var ops = self.options;
-            if (ops.autoPlay) {
-                this.el.onmouseenter = function() {
-                    clearInterval(self.timer);
-                    self.timer = null;
-                };
-                this.el.onmouseleave = function() {
-                    self.setTimer();
-                };
-            }
-            if (ops.dots) {
-                for (var i = 0; i < this.dots.length; i++) {
-                    this.dots[i].index = i + this.arr.length;
-                    addHandler(this.dots[i], self.options.event, function() {
-                        if (self.status) {
-                            self.pIndex = self.index;
-                            self.index = this.index;
-                            self.offset();
-                        }
-                    })
-                }
-            }
-            if (ops.arrow) {
-                addHandler(self.pre, 'click', function() {
-                    if (self.status) {
-                        self.pIndex = self.index;
-                        self.index--;
-                        self.offset();
-                    }
-                });
-                addHandler(this.next, 'click', function() {
-                    if (self.status) {
-                        self.pIndex = self.index;
-                        self.index++;
-                        self.offset();
-                    }
-                });
-            }
-            return this;
-        };
-
-        // 改变分页器选中样式
-        Banner.prototype.dotChange = function() {
-            var self = this;
-            if (self.dots) {
-                for (var i = 0; i < self.dots.length; i++) {
-                    removeClass(self.dots[i], 'active')
-                }
-                addClass(self.dots[self.index - self.arr.length], 'active');
-            }
+        // 箭头
+        if (op.arrow) {
+            var arrowP = document.createElement('button');
+            var arrowN = document.createElement('button');
+            arrowP.className = 'pre';
+            arrowP.innerHTML = '<';
+            arrowN.className = 'next';
+            arrowN.innerHTML = '>';
+            this.pre = arrowP;
+            this.next = arrowN;
+            x.appendChild(arrowP);
+            x.appendChild(arrowN);
         }
 
-        // 配置效果
-        Banner.prototype.offset = function() {
-            throw new Error('必须设置切换效果')
-        };
+        //分页器
+        if (op.dots) {
+            var dotList = document.createElement('ul');
+            dotList.className = 'dots-list';
+            var dots = '';
+            for (var i = 0; i < this.arr.length; i++) {
+                dots = dots + '<li class="dot-item">' + (i + 1) + '</li>';
+            }
+            dotList.innerHTML = dots;
+            this.dots = selectEl('.dot-item', dotList);
+            x.appendChild(dotList);
+            this.dotChange();
+        }
 
-        // 判断迭代是否重置
-        Banner.prototype.judge = function() {
-            throw new Error('必须设置判断边界的函数');
-        };
+        x.appendChild(box)
+        el.innerHTML = '';
+        el.appendChild(x);
+        var allItem = selectEl('>*', box);
+        this.allItem = allItem;
+        for (var i = 0; i < allItem.length; i++) {
+            css(allItem[i], {
+                'width': this.w,
+                'height': this.h
+            });
+        }
+        return this;
+    };
 
-        // 设置定时器
-        Banner.prototype.setTimer = function() {
-            var self = this;
-            this.timer = setInterval(function() {
+    //绑定事件 
+    Banner.prototype.bindEvent = function() {
+        var self = this;
+        var ops = self.options;
+        if (ops.autoPlay) {
+            this.el.onmouseenter = function() {
+                clearInterval(self.timer);
+                self.timer = null;
+            };
+            this.el.onmouseleave = function() {
+                self.setTimer();
+            };
+        }
+        if (ops.dots) {
+            for (var i = 0; i < this.dots.length; i++) {
+                this.dots[i].index = i + this.arr.length;
+                addHandler(this.dots[i], self.options.event, function() {
+                    if (self.status) {
+                        self.pIndex = self.index;
+                        self.index = this.index;
+                        self.offset();
+                    }
+                })
+            }
+        }
+        if (ops.arrow) {
+            addHandler(self.pre, 'click', function() {
+                if (self.status) {
+                    self.pIndex = self.index;
+                    self.index--;
+                    self.offset();
+                }
+            });
+            addHandler(this.next, 'click', function() {
                 if (self.status) {
                     self.pIndex = self.index;
                     self.index++;
                     self.offset();
                 }
-            }, self.options.wTime + self.options.tTime);
-            return this;
-        };
-
-        // 水平方向平移
-        function LevelMove(el, arr, op) {
-            Banner.call(this, el, arr, op);
-        }
-
-        extend(Banner, LevelMove);
-
-        // 设置单独样式
-        LevelMove.prototype.setStyles = function() {
-            css(this.box, {
-                'height': '100%',
-                'width': parseInt(this.w) * this.arr.length * 3 + 'px',
-                'left': -this.index * parseInt(this.w) + 'px'
             });
-            return this;
         }
+        return this;
+    };
 
-        // 水平平移方向的动画效果
-        LevelMove.prototype.offset = function() {
-            var self = this;
-            this.status = 0;
-            this.judge();
-            this.dotChange();
-            animation(this.box, {
-                'left': -this.index * parseInt(this.w) + 'px'
-            }, this.options.tTime, function() {
-                self.status = 1;
-            }, 'px');
-        }
-
-        //水平平移效果的判断
-        LevelMove.prototype.judge = function() {
-            if (this.index >= this.arr.length * 2) {
-                this.index = this.arr.length;
-                css(this.box, 'left', -(this.index - 1) * parseInt(this.w) + 'px');
-            } else if (this.index <= this.arr.length - 1) {
-                this.index = this.arr.length * 2 - 1;
-                css(this.box, 'left', -(this.index + 1) * parseInt(this.w) + 'px');
+    // 改变分页器选中样式
+    Banner.prototype.dotChange = function() {
+        var self = this;
+        if (self.dots) {
+            for (var i = 0; i < self.dots.length; i++) {
+                removeClass(self.dots[i], 'active')
             }
+            addClass(self.dots[self.index - self.arr.length], 'active');
         }
+    }
 
+    // 配置效果
+    Banner.prototype.offset = function() {
+        throw new Error('必须设置切换效果')
+    };
 
-        // 垂直方向平移
-        function VerticalMove(el, arr, op) {
-            Banner.call(this, el, arr, op);
-        }
-        extend(Banner, VerticalMove);
+    // 判断迭代是否重置
+    Banner.prototype.judge = function() {
+        throw new Error('必须设置判断边界的函数');
+    };
 
-        // 设置单独样式
-        VerticalMove.prototype.setStyles = function() {
-            css(this.box, {
-                'width': '100%',
-                'hight': parseInt(this.h) * this.arr.length * 3 + 'px',
-                'top': -this.index * parseInt(this.h) + 'px'
-            });
-            return this;
-        }
-
-        // 垂直平移方向的动画效果
-        VerticalMove.prototype.offset = function() {
-            var self = this;
-            this.status = 0;
-            this.judge();
-            this.dotChange();
-            animation(this.box, {
-                'top': -this.index * parseInt(this.h) + 'px'
-            }, this.options.tTime, function() {
-                self.status = 1;
-            }, 'px');
-        }
-
-        //垂直平移效果的判断
-        VerticalMove.prototype.judge = function() {
-            if (this.index >= this.arr.length * 2) {
-                this.index = this.arr.length;
-                css(this.box, 'top', -(this.index - 1) * parseInt(this.h) + 'px');
-            } else if (this.index <= this.arr.length - 1) {
-                this.index = this.arr.length * 2 - 1;
-                css(this.box, 'top', -(this.index + 1) * parseInt(this.h) + 'px');
+    // 设置定时器
+    Banner.prototype.setTimer = function() {
+        var self = this;
+        this.timer = setInterval(function() {
+            if (self.status) {
+                self.pIndex = self.index;
+                self.index++;
+                self.offset();
             }
+        }, self.options.wTime + self.options.tTime);
+        return this;
+    };
+
+    // 水平方向平移
+    function LevelMove(el, arr, op) {
+        Banner.call(this, el, arr, op);
+    }
+
+    extend(Banner, LevelMove);
+
+    // 设置单独样式
+    LevelMove.prototype.setStyles = function() {
+        css(this.box, {
+            'height': this.h,
+            'width': parseInt(this.w) * this.arr.length * 3 + 'px',
+            'left': -this.index * parseInt(this.w) + 'px'
+        });
+        return this;
+    }
+
+    // 水平平移方向的动画效果
+    LevelMove.prototype.offset = function() {
+        var self = this;
+        this.status = 0;
+        this.judge();
+        this.dotChange();
+        animation(this.box, {
+            'left': -this.index * parseInt(this.w) + 'px'
+        }, this.options.tTime, function() {
+            self.status = 1;
+        }, 'px');
+    }
+
+    //水平平移效果的判断
+    LevelMove.prototype.judge = function() {
+        if (this.index >= this.arr.length * 2) {
+            this.index = this.arr.length;
+            css(this.box, 'left', -(this.index - 1) * parseInt(this.w) + 'px');
+        } else if (this.index <= this.arr.length - 1) {
+            this.index = this.arr.length * 2 - 1;
+            css(this.box, 'left', -(this.index + 1) * parseInt(this.w) + 'px');
         }
+    }
 
-        // 淡入淡出效果
-        function Fade(el, arr, op) {
-            Banner.call(this, el, arr, op);
+
+    // 垂直方向上移
+    function VerticalUpMove(el, arr, op) {
+        Banner.call(this, el, arr, op);
+    }
+    extend(Banner, VerticalUpMove);
+
+    // 设置单独样式
+    VerticalUpMove.prototype.setStyles = function() {
+        css(this.box, {
+            'width': this.w,
+            'hight': parseInt(this.h) * this.arr.length * 3 + 'px',
+            'top': -this.index * parseInt(this.h) + 'px'
+        });
+        return this;
+    }
+
+    // 垂直上移的动画效果
+    VerticalUpMove.prototype.offset = function() {
+        var self = this;
+        this.status = 0;
+        this.judge();
+        this.dotChange();
+        animation(this.box, {
+            'top': -this.index * parseInt(this.h) + 'px'
+        }, this.options.tTime, function() {
+            self.status = 1;
+        }, 'px');
+    }
+
+    //垂直上移效果的判断
+    VerticalUpMove.prototype.judge = function() {
+        if (this.index >= this.arr.length * 2) {
+            this.index = this.arr.length;
+            css(this.box, 'top', -(this.index - 1) * parseInt(this.h) + 'px');
+        } else if (this.index <= this.arr.length - 1) {
+            this.index = this.arr.length * 2 - 1;
+            css(this.box, 'top', -(this.index + 1) * parseInt(this.h) + 'px');
         }
+    }
 
-        extend(Banner, Fade);
 
-        // 设置单独样式
-        Fade.prototype.setStyles = function() {
-            var mask = document.createElement('div');
-            css(mask, {
-                'position': 'absolute',
-                'left': '0',
-                'top': '0',
-                'width': this.w,
-                'height': this.h,
-                'zIndex': '0',
-                'backgroundColor': '#ccc'
-            });
-            this.box.appendChild(mask);
-            var allItem = this.allItem;
-            css(this.box, {
-                'width': '100%',
-                'hight': '100%'
-            });
-            for (var i = 0; i < allItem.length; i++) {
-                css(allItem[i], {
-                    'position': 'absolute',
-                    'left': '0',
-                    'top': '0',
-                    'zIndex': '-1'
-                });
-                setOpacity(allItem[i], 0);
-            }
-            setOpacity(allItem[this.index], 100);
-            css(allItem[this.index], 'zIndex', '1');
-            return this;
+
+    // 垂直方向下移
+    function VerticalDownMove(el, arr, op) {
+        Banner.call(this, el, arr, op);
+    }
+    extend(Banner, VerticalDownMove);
+
+    // 设置单独样式
+    VerticalDownMove.prototype.setStyles = function() {
+        css(this.box, {
+            'width': this.w,
+            'hight': parseInt(this.h) * this.arr.length * 3 + 'px',
+            'top': -this.index * parseInt(this.h) + 'px'
+        });
+        return this;
+    }
+
+    //绑定事件 
+    VerticalDownMove.prototype.bindEvent = function() {
+        var self = this;
+        var ops = self.options;
+        if (ops.autoPlay) {
+            this.el.onmouseenter = function() {
+                clearInterval(self.timer);
+                self.timer = null;
+            };
+            this.el.onmouseleave = function() {
+                self.setTimer();
+            };
         }
-
-        // 淡入淡出动画效果
-        Fade.prototype.offset = function() {
-            var self = this;
-            var els = self.allItem;
-            var t = self.options.tTime / 2;
-            self.status = 0;
-            self.judge();
-            self.dotChange();
-            for (var i = 0; i < els.length; i++) {
-                setOpacity(els[i], 0);
-                css(els[i], 'zIndex', '-1');
-            }
-            if (self.index == self.pIndex) {
-                css(els[self.index], 'zIndex', '1');
-                setOpacity(els[self.index], 100);
-                self.status = 1;
-            } else {
-                css(els[self.pIndex], 'zIndex', '1');
-                fadeOut(els[self.pIndex], t, function() {
-                    fadeIn(els[self.index], t, function() {
-                        self.status = 1;
-                    })
+        if (ops.dots) {
+            for (var i = 0; i < this.dots.length; i++) {
+                this.dots[i].index = i + this.arr.length;
+                addHandler(this.dots[i], self.options.event, function() {
+                    if (self.status) {
+                        self.pIndex = self.index;
+                        self.index = this.index;
+                        self.offset();
+                    }
                 })
             }
         }
-
-        //淡入淡出效果的判断
-        Fade.prototype.judge = function() {
-            var self = this;
-            var els = this.allItem;
-            if (this.index >= this.arr.length * 2) {
-                self.pIndex = this.index - 1;
-                this.index = this.arr.length;
-                this.offset();
-            } else if (this.index <= this.arr.length - 1) {
-                self.pIndex = this.index + 1;
-                this.index = this.arr.length * 2 - 1;
-                this.offset();
-            }
+        if (ops.arrow) {
+            addHandler(self.pre, 'click', function() {
+                if (self.status) {
+                    self.pIndex = self.index;
+                    self.index--;
+                    self.offset();
+                }
+            });
+            addHandler(this.next, 'click', function() {
+                if (self.status) {
+                    self.pIndex = self.index;
+                    self.index++;
+                    self.offset();
+                }
+            });
         }
+        return this;
+    };
 
-        // 默认值
-        var defaultO = {
-            vertical: false, //是否垂直方向上轮播
-            way: 'move', //轮播方式
-            tTime: 500, //一次轮播的时间
-            index: 1, //初始位置
-            wTime: 2000, //一次轮播结束后等待的时间
-            arrow: true, //是否添加上下翻页箭头
-            dots: true, //是否添加分页器
-            event: 'click', //分页器的事件类型
-            autoPlay: true //是否自动播放
-        };
+    // 垂直下移的动画效果
+    VerticalDownMove.prototype.offset = function() {
+        var self = this;
+        this.status = 0;
+        this.judge();
+        this.dotChange();
+        animation(this.box, {
+            'top': -this.index * parseInt(this.h) + 'px'
+        }, this.options.tTime, function() {
+            self.status = 1;
+        }, 'px');
+    }
 
-        // 初始化
-        var init = function(options) {
-            var op = combineObj(defaultO, options);
-            var wrap = selectEl(options.el)[0];
+    //垂直下移效果的判断
+    VerticalDownMove.prototype.judge = function() {
+        if (this.index >= this.arr.length * 2) {
+            this.index = this.arr.length;
+            css(this.box, 'top', -(this.index - 1) * parseInt(this.h) + 'px');
+        } else if (this.index <= this.arr.length - 1) {
+            this.index = this.arr.length * 2 - 1;
+            css(this.box, 'top', -(this.index + 1) * parseInt(this.h) + 'px');
+        }
+    }
+
+
+    // 淡入淡出效果
+    function Fade(el, arr, op) {
+        Banner.call(this, el, arr, op);
+    }
+
+    extend(Banner, Fade);
+
+    // 设置单独样式
+    Fade.prototype.setStyles = function() {
+        var mask = document.createElement('div');
+        css(mask, {
+            'position': 'absolute',
+            'left': '0',
+            'top': '0',
+            'width': this.w,
+            'height': this.h,
+            'zIndex': '0',
+            'backgroundColor': '#ccc'
+        });
+        this.box.appendChild(mask);
+        var allItem = this.allItem;
+        css(this.box, {
+            'width': '100%',
+            'hight': '100%'
+        });
+        for (var i = 0; i < allItem.length; i++) {
+            css(allItem[i], {
+                'position': 'absolute',
+                'left': '0',
+                'top': '0',
+                'zIndex': '-1'
+            });
+            setOpacity(allItem[i], 0);
+        }
+        setOpacity(allItem[this.index], 100);
+        css(allItem[this.index], 'zIndex', '1');
+        return this;
+    }
+
+    // 淡入淡出动画效果
+    Fade.prototype.offset = function() {
+        var self = this;
+        var els = self.allItem;
+        var t = self.options.tTime / 2;
+        self.status = 0;
+        self.judge();
+        self.dotChange();
+        for (var i = 0; i < els.length; i++) {
+            setOpacity(els[i], 0);
+            css(els[i], 'zIndex', '-1');
+        }
+        if (self.index == self.pIndex) {
+            css(els[self.index], 'zIndex', '1');
+            setOpacity(els[self.index], 100);
+            self.status = 1;
+        } else {
+            css(els[self.pIndex], 'zIndex', '1');
+            fadeOut(els[self.pIndex], t, function() {
+                fadeIn(els[self.index], t, function() {
+                    self.status = 1;
+                })
+            })
+        }
+    }
+
+    //淡入淡出效果的判断
+    Fade.prototype.judge = function() {
+        var self = this;
+        var els = this.allItem;
+        if (this.index >= this.arr.length * 2) {
+            self.pIndex = this.index - 1;
+            this.index = this.arr.length;
+            this.offset();
+        } else if (this.index <= this.arr.length - 1) {
+            self.pIndex = this.index + 1;
+            this.index = this.arr.length * 2 - 1;
+            this.offset();
+        }
+    }
+
+    // 默认值
+    var defaultO = {
+        vertical: false, //是否垂直方向上轮播
+        way: 'move', //轮播方式
+        tTime: 500, //一次轮播的时间
+        index: 1, //初始位置
+        wTime: 2000, //一次轮播结束后等待的时间
+        arrow: true, //是否添加上下翻页箭头
+        dots: true, //是否添加分页器
+        event: 'click', //分页器的事件类型
+        autoPlay: true //是否自动播放
+    };
+
+    // 初始化
+    var init = function(options) {
+        var op = combineObj(defaultO, options);
+        var wraps = selectEl(options.el);
+        var wrap;
+        for (var n = 0; n < wraps.length; n++) {
+            wrap = wraps[n];
             var el = wrap.getElementsByTagName('*');
             var arr = [];
             var banner;
@@ -498,7 +587,7 @@ window.onload = function() {
             }
             if (op.way == 'move') {
                 if (op.vertical) {
-                    banner = new VerticalMove(wrap, arr, op);
+                    banner = new VerticalUpMove(wrap, arr, op);
                 } else {
                     banner = new LevelMove(wrap, arr, op);
                 }
@@ -510,15 +599,7 @@ window.onload = function() {
                 banner.setTimer();
             }
             console.log(banner);
-        };
-        return init;
-    }());
-    swiper({
-        el: '.wrap',
-        // autoPlay: false,
-        // vertical: true
-        event: 'mouseover',
-        way: 'fade',
-        tTime: 1000
-    })
-}
+        }
+    };
+    return init;
+}());
