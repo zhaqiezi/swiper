@@ -11,21 +11,18 @@ li {
     overflow: hidden;
 }
 
-.swiper .box>* {
-    display: inline-block
-}
-
 .swiper .box {
     position: absolute;
     top: 0;
     left: 0;
 }
 
-.swiper:after {
-    content: '';
-    height: 0;
-    visibility: hidden;
-    clear: both;
+.swiper .box>* {
+    display: inline-block
+}
+
+.swiper .box .active-item {
+    z-index: 2;
 }
 
 .swiper .pre,

@@ -1,126 +1,164 @@
-window.onload = function() {
-    // 改变样式,查看样式
-    var css = function(el, sty, val) {
-        if (arguments.length == 2 && typeof arguments[1] == 'object') {
-            var o = arguments[1];
-            for (var prop in o) {
-                if (!o.hasOwnProperty(prop)) continue;
-                el.style[prop] = o[prop];
-            }
-            return;
+// 改变样式,查看样式
+var css = function(el, sty, val) {
+    if (arguments.length == 2 && typeof arguments[1] == 'object') {
+        var o = arguments[1];
+        for (var prop in o) {
+            if (!o.hasOwnProperty(prop)) continue;
+            el.style[prop] = o[prop];
         }
-        if (!val) {
-            return (el.currentStyle ? el.currentStyle : window.getComputedStyle(el, null))[sty];
-        }
-        el.style[sty] = val;
+        return;
     }
-
-    //添加事件 
-    var addHandler = function(element, type, handler) {
-        if (element.addEventListener) {
-            element.addEventListener(type, handler, false);
-        } else if (element.attachEvent) {
-            element.attachEvent('on' + type, handler);
-        } else {
-            element['on' + type] = handler;
-        }
+    if (!val) {
+        return (el.currentStyle ? el.currentStyle : window.getComputedStyle(el, null))[sty];
     }
+    el.style[sty] = val;
+}
 
-    // 选择器
-    function selectEl(selector, parent) {
-        var pr = selector.substring(0, 1);
-        var s = selector.substring(1);
-        var arr = [];
-        var allE = null;
-        if (pr == '#') {
-            arr.push(document.getElementById(s))
-        } else if (pr == '.') {
-            allE = parent ? parent.getElementsByTagName('*') : document.getElementsByTagName('*');
-            var reg = new RegExp("(^|\\s)" + s + "($|\\s)");
-            for (var i = 0; i < allE.length; i++) {
-                if (reg.test(allE[i].className)) arr.push(allE[i]);
-            }
-            return arr;
-        } else if (pr == '>') {
-            allE = parent.getElementsByTagName(s);
-            for (var i = 0; i < allE.length; i++) {
-                if (allE[i].parentNode == parent) arr.push(allE[i]);
-            }
-        } else {
-            arr = parent ? parent.getElementsByTagName(selector) : document.getElementsByTagName(selector);
+//添加事件 
+var addHandler = function(element, type, handler) {
+    if (element.addEventListener) {
+        element.addEventListener(type, handler, false);
+    } else if (element.attachEvent) {
+        element.attachEvent('on' + type, handler);
+    } else {
+        element['on' + type] = handler;
+    }
+}
+
+// 选择器
+function selectEl(selector, parent) {
+    var pr = selector.substring(0, 1);
+    var s = selector.substring(1);
+    var arr = [];
+    var allE = null;
+    if (pr == '#') {
+        arr.push(document.getElementById(s))
+    } else if (pr == '.') {
+        allE = parent ? parent.getElementsByTagName('*') : document.getElementsByTagName('*');
+        var reg = new RegExp("(^|\\s)" + s + "($|\\s)");
+        for (var i = 0; i < allE.length; i++) {
+            if (reg.test(allE[i].className)) arr.push(allE[i]);
         }
         return arr;
-    }
-
-    // 合并两个对象的函数
-    var combineObj = function(o, p) {
-        var obj = {};
-        for (prop in o) {
-            obj[prop] = o[prop];
+    } else if (pr == '>') {
+        allE = parent.getElementsByTagName(s);
+        for (var i = 0; i < allE.length; i++) {
+            if (allE[i].parentNode == parent) arr.push(allE[i]);
         }
-        for (prop in p) {
-            obj[prop] = p[prop];
-        }
-        return obj;
+    } else {
+        arr = parent ? parent.getElementsByTagName(selector) : document.getElementsByTagName(selector);
     }
+    return arr;
+}
 
-    //添加class
-    var addClass = function(el, cls) {
-        var reg = new RegExp("(^|\\s)" + cls + "($|\\s)");
-        if (!reg.test(el.className)) {
-            el.className += " " + cls;
-        }
+// 合并两个对象的函数
+var combineObj = function(o, p) {
+    var obj = {};
+    for (prop in o) {
+        obj[prop] = o[prop];
     }
-
-    //清除class
-    var removeClass = function(el, cls) {
-        var reg = new RegExp("(^|\\s)" + cls + "($|\\s)");
-        if (reg.test(el.className)) {
-            el.className = el.className.replace(reg, '');
-        }
+    for (prop in p) {
+        obj[prop] = p[prop];
     }
+    return obj;
+}
 
-    // 继承方法
-    var extend = function(parentClass, childClass) {
-        var F = function() {};
-        F.prototype = parentClass.prototype;
-        childClass.prototype = new F();
+//添加class
+var addClass = function(el, cls) {
+    var reg = new RegExp("(^|\\s)" + cls + "($|\\s)");
+    if (!reg.test(el.className)) {
+        el.className += " " + cls;
     }
+}
 
-    // 动画
-    var animation = function(el, o, t, f, dw) {
-        var arr = [];
-        var p = {};
-        for (var key in o) {
-            if (!o.hasOwnProperty(key)) continue;
-            p = {};
-            p.key = key;
-            p.from = css(el, key);
-            p.to = o[key];
-            p.n = (parseInt(p.to) - parseInt(p.from)) * 10 / t;
-            p.bool = 0;
-            arr.push(p);
-        }
-        var timer = setInterval(function() {
-            console.log(arr[0].n);
-            for (var i = 0; i < arr.length; i++) {
-                if (arr[i].from !== arr[i].to) {
-                    el.style[arr[i].key] = parseInt(arr[i].from) + arr[i].n + dw;
-                    arr[i].from = css(el, arr[i].key);
-                } else {
-                    arr[i].bool = 1;
-                }
+//清除class
+var removeClass = function(el, cls) {
+    var reg = new RegExp("(^|\\s)" + cls + "($|\\s)");
+    if (reg.test(el.className)) {
+        el.className = el.className.replace(reg, '');
+    }
+}
+
+// 继承方法
+var extend = function(parentClass, childClass) {
+    var F = function() {};
+    F.prototype = parentClass.prototype;
+    childClass.prototype = new F();
+}
+
+// 动画
+var animation = function(el, o, t, f, dw) {
+    var arr = [];
+    var p = {};
+    for (var key in o) {
+        if (!o.hasOwnProperty(key)) continue;
+        p = {};
+        p.key = key;
+        p.from = css(el, key);
+        p.to = o[key];
+        p.n = (parseInt(p.to) - parseInt(p.from)) * 10 / t;
+        p.bool = 0;
+        arr.push(p);
+    }
+    var timer = setInterval(function() {
+        for (var i = 0; i < arr.length; i++) {
+            var item = arr[i];
+            if (Math.abs(parseInt(item.from) - parseInt(item.to)) > Math.abs(item.n)) {
+                el.style[item.key] = parseInt(item.from) + item.n + dw;
+                item.from = css(el, item.key);
+            } else {
+                item.bool = 1;
+                el.style[item.key] = item.to;
             }
-            if (arr.every(function(item) {
-                    return item.bool == 1;
-                })) {
-                clearInterval(timer)
-                timer = null;
-                f();
-            }
-        }, 10)
-    };
+        }
+        if (arr.every(function(item) {
+                return item.bool == 1;
+            })) {
+            clearInterval(timer)
+            timer = null;
+            f();
+        }
+    }, 10)
+};
 
+// 设置透明度
+function setOpacity(ele, opacity) {
+    if (ele.style.opacity != undefined) {
+        ///兼容FF和GG和新版本IE 
+        ele.style.opacity = opacity / 100;
+
+    } else {
+        ///兼容老版本ie 
+        ele.style.filter = "alpha(opacity=" + opacity + ")";
+    }
+}
+// 淡入效果
+function fadeIn(el, t, f) {
+    var opacity = 0;
+    el.style.zIndex = 1;
+    var time = t / 100;
+    var timer = setInterval(function() {
+        setOpacity(el, ++opacity);
+        if (opacity >= 100) {
+            clearInterval(timer);
+            f && typeof f == 'function' && f();
+        }
+    }, time);
+}
+// 淡出效果
+function fadeOut(el, t, f) {
+    var opacity = 100;
+    var time = t / 100;
+    var timer = setInterval(function() {
+        setOpacity(el, --opacity);
+        if (opacity <= 0) {
+            el.style.zIndex = -1;
+            clearInterval(timer);
+            f && typeof f == 'function' && f();
+        }
+    }, time);
+}
+window.onload = function() {
     // 定义轮播图
     var swiper = (function() {
         // 构造函数
@@ -134,6 +172,7 @@ window.onload = function() {
             this.w = css(el, 'width'); //宽度
             this.h = css(el, 'height'); //高度
             this.status = 1; //定时器运行的状态
+            this.pIndex = this.index; //前一个索引
         }
 
         // 结构生成
@@ -182,8 +221,12 @@ window.onload = function() {
             el.innerHTML = '';
             el.appendChild(x);
             var allItem = selectEl('>*', box);
+            this.allItem = allItem;
             for (var i = 0; i < allItem.length; i++) {
-                css(allItem[i], { 'width': this.w, 'height': this.h });
+                css(allItem[i], {
+                    'width': this.w,
+                    'height': this.h
+                });
             }
             return this;
         };
@@ -205,8 +248,9 @@ window.onload = function() {
                 for (var i = 0; i < this.dots.length; i++) {
                     this.dots[i].index = i + this.arr.length;
                     addHandler(this.dots[i], self.options.event, function() {
-                        self.index = this.index;
                         if (self.status) {
+                            self.pIndex = self.index;
+                            self.index = this.index;
                             self.offset();
                         }
                     })
@@ -215,12 +259,14 @@ window.onload = function() {
             if (ops.arrow) {
                 addHandler(self.pre, 'click', function() {
                     if (self.status) {
+                        self.pIndex = self.index;
                         self.index--;
                         self.offset();
                     }
                 });
                 addHandler(this.next, 'click', function() {
                     if (self.status) {
+                        self.pIndex = self.index;
                         self.index++;
                         self.offset();
                     }
@@ -255,6 +301,7 @@ window.onload = function() {
             var self = this;
             this.timer = setInterval(function() {
                 if (self.status) {
+                    self.pIndex = self.index;
                     self.index++;
                     self.offset();
                 }
@@ -344,17 +391,97 @@ window.onload = function() {
             }
         }
 
+        // 淡入淡出效果
+        function Fade(el, arr, op) {
+            Banner.call(this, el, arr, op);
+        }
+
+        extend(Banner, Fade);
+
+        // 设置单独样式
+        Fade.prototype.setStyles = function() {
+            var mask = document.createElement('div');
+            css(mask, {
+                'position': 'absolute',
+                'left': '0',
+                'top': '0',
+                'width': this.w,
+                'height': this.h,
+                'zIndex': '0',
+                'backgroundColor': '#ccc'
+            });
+            this.box.appendChild(mask);
+            var allItem = this.allItem;
+            css(this.box, {
+                'width': '100%',
+                'hight': '100%'
+            });
+            for (var i = 0; i < allItem.length; i++) {
+                css(allItem[i], {
+                    'position': 'absolute',
+                    'left': '0',
+                    'top': '0',
+                    'zIndex': '-1'
+                });
+                setOpacity(allItem[i], 0);
+            }
+            setOpacity(allItem[this.index], 100);
+            css(allItem[this.index], 'zIndex', '1');
+            return this;
+        }
+
+        // 淡入淡出动画效果
+        Fade.prototype.offset = function() {
+            var self = this;
+            var els = self.allItem;
+            var t = self.options.tTime / 2;
+            self.status = 0;
+            self.judge();
+            self.dotChange();
+            for (var i = 0; i < els.length; i++) {
+                setOpacity(els[i], 0);
+                css(els[i], 'zIndex', '-1');
+            }
+            if (self.index == self.pIndex) {
+                css(els[self.index], 'zIndex', '1');
+                setOpacity(els[self.index], 100);
+                self.status = 1;
+            } else {
+                css(els[self.pIndex], 'zIndex', '1');
+                fadeOut(els[self.pIndex], t, function() {
+                    fadeIn(els[self.index], t, function() {
+                        self.status = 1;
+                    })
+                })
+            }
+        }
+
+        //淡入淡出效果的判断
+        Fade.prototype.judge = function() {
+            var self = this;
+            var els = this.allItem;
+            if (this.index >= this.arr.length * 2) {
+                self.pIndex = this.index - 1;
+                this.index = this.arr.length;
+                this.offset();
+            } else if (this.index <= this.arr.length - 1) {
+                self.pIndex = this.index + 1;
+                this.index = this.arr.length * 2 - 1;
+                this.offset();
+            }
+        }
+
         // 默认值
         var defaultO = {
-            vertical: false,
-            way: 'move',
-            tTime: 500,
-            index: 1,
-            wTime: 2000,
-            arrow: true,
-            dots: true,
-            event: 'click',
-            autoPlay: true
+            vertical: false, //是否垂直方向上轮播
+            way: 'move', //轮播方式
+            tTime: 500, //一次轮播的时间
+            index: 1, //初始位置
+            wTime: 2000, //一次轮播结束后等待的时间
+            arrow: true, //是否添加上下翻页箭头
+            dots: true, //是否添加分页器
+            event: 'click', //分页器的事件类型
+            autoPlay: true //是否自动播放
         };
 
         // 初始化
@@ -375,6 +502,8 @@ window.onload = function() {
                 } else {
                     banner = new LevelMove(wrap, arr, op);
                 }
+            } else if (op.way == 'fade') {
+                banner = new Fade(wrap, arr, op);
             }
             banner.structure().setStyles().bindEvent();
             if (op.autoPlay) {
@@ -388,6 +517,8 @@ window.onload = function() {
         el: '.wrap',
         // autoPlay: false,
         // vertical: true
-        event: 'mouseover'
+        event: 'mouseover',
+        way: 'fade',
+        tTime: 1000
     })
 }
