@@ -396,84 +396,18 @@ var swiper = (function() {
     function VerticalDownMove(el, arr, op) {
         Banner.call(this, el, arr, op);
     }
-    extend(Banner, VerticalDownMove);
+    extend(VerticalUpMove, VerticalDownMove);
 
-    // 设置单独样式
-    VerticalDownMove.prototype.setStyles = function() {
-        css(this.box, {
-            'width': this.w,
-            'hight': parseInt(this.h) * this.arr.length * 3 + 'px',
-            'top': -this.index * parseInt(this.h) + 'px'
-        });
-        return this;
-    }
-
-    //绑定事件 
-    VerticalDownMove.prototype.bindEvent = function() {
+    VerticalDownMove.prototype.setTimer = function() {
         var self = this;
-        var ops = self.options;
-        if (ops.autoPlay) {
-            this.el.onmouseenter = function() {
-                clearInterval(self.timer);
-                self.timer = null;
-            };
-            this.el.onmouseleave = function() {
-                self.setTimer();
-            };
-        }
-        if (ops.dots) {
-            for (var i = 0; i < this.dots.length; i++) {
-                this.dots[i].index = i + this.arr.length;
-                addHandler(this.dots[i], self.options.event, function() {
-                    if (self.status) {
-                        self.pIndex = self.index;
-                        self.index = this.index;
-                        self.offset();
-                    }
-                })
+        this.timer = setInterval(function() {
+            if (self.status) {
+                self.pIndex = self.index;
+                self.index--;
+                self.offset();
             }
-        }
-        if (ops.arrow) {
-            addHandler(self.pre, 'click', function() {
-                if (self.status) {
-                    self.pIndex = self.index;
-                    self.index--;
-                    self.offset();
-                }
-            });
-            addHandler(this.next, 'click', function() {
-                if (self.status) {
-                    self.pIndex = self.index;
-                    self.index++;
-                    self.offset();
-                }
-            });
-        }
+        }, self.options.wTime + self.options.tTime);
         return this;
-    };
-
-    // 垂直下移的动画效果
-    VerticalDownMove.prototype.offset = function() {
-        var self = this;
-        this.status = 0;
-        this.judge();
-        this.dotChange();
-        animation(this.box, {
-            'top': -this.index * parseInt(this.h) + 'px'
-        }, this.options.tTime, function() {
-            self.status = 1;
-        }, 'px');
-    }
-
-    //垂直下移效果的判断
-    VerticalDownMove.prototype.judge = function() {
-        if (this.index >= this.arr.length * 2) {
-            this.index = this.arr.length;
-            css(this.box, 'top', -(this.index - 1) * parseInt(this.h) + 'px');
-        } else if (this.index <= this.arr.length - 1) {
-            this.index = this.arr.length * 2 - 1;
-            css(this.box, 'top', -(this.index + 1) * parseInt(this.h) + 'px');
-        }
     }
 
 
@@ -559,8 +493,7 @@ var swiper = (function() {
 
     // 默认值
     var defaultO = {
-        vertical: false, //是否垂直方向上轮播
-        way: 'move', //轮播方式
+        way: 'left', //轮播方式
         tTime: 500, //一次轮播的时间
         index: 1, //初始位置
         wTime: 2000, //一次轮播结束后等待的时间
@@ -569,6 +502,14 @@ var swiper = (function() {
         event: 'click', //分页器的事件类型
         autoPlay: true //是否自动播放
     };
+
+    //调用方式 
+    var Way = {
+        'up': VerticalUpMove,
+        'left': LevelMove,
+        'down': VerticalDownMove,
+        'fade': Fade
+    }
 
     // 初始化
     var init = function(options) {
@@ -585,14 +526,11 @@ var swiper = (function() {
                     arr.push(el[i]);
                 }
             }
-            if (op.way == 'move') {
-                if (op.vertical) {
-                    banner = new VerticalUpMove(wrap, arr, op);
-                } else {
-                    banner = new LevelMove(wrap, arr, op);
-                }
-            } else if (op.way == 'fade') {
-                banner = new Fade(wrap, arr, op);
+
+            if (!Way[op.way]) {
+                banner = new Way['left'](wrap, arr, op)
+            } else {
+                banner = new Way[op.way](wrap, arr, op);
             }
             banner.structure().setStyles().bindEvent();
             if (op.autoPlay) {
