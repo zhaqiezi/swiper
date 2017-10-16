@@ -395,9 +395,27 @@ var swiper = (function() {
     // 垂直方向下移
     function VerticalDownMove(el, arr, op) {
         Banner.call(this, el, arr, op);
+        this.index = arr.length * 2 - op.index; //轮播的索引
     }
-    extend(VerticalUpMove, VerticalDownMove);
+    extend(Banner, VerticalDownMove);
 
+    // 设置单独样式
+    VerticalDownMove.prototype.setStyles = function() {
+        var arr = this.allItem;
+        arr.reverse();
+        this.box.innerHTML = '';
+        for (var i = 0; i < arr.length; i++) {
+            this.box.appendChild(arr[i].cloneNode(true));
+        }
+        css(this.box, {
+            'width': this.w,
+            'hight': parseInt(this.h) * this.arr.length * 3 + 'px',
+            'top': -this.index * parseInt(this.h) + 'px'
+        });
+        return this;
+    }
+
+    // 设置定时器
     VerticalDownMove.prototype.setTimer = function() {
         var self = this;
         this.timer = setInterval(function() {
@@ -410,6 +428,40 @@ var swiper = (function() {
         return this;
     }
 
+    // 改变分页器选中样式
+    VerticalDownMove.prototype.dotChange = function() {
+        var self = this;
+        if (self.dots) {
+            for (var i = 0; i < self.dots.length; i++) {
+                removeClass(self.dots[i], 'active')
+            }
+            addClass(self.dots[self.arr.length * 2 - 1 - self.index], 'active');
+        }
+    }
+
+    // 垂直下移的动画效果
+    VerticalDownMove.prototype.offset = function() {
+        var self = this;
+        this.status = 0;
+        this.judge();
+        this.dotChange();
+        animation(this.box, {
+            'top': -this.index * parseInt(this.h) + 'px'
+        }, this.options.tTime, function() {
+            self.status = 1;
+        }, 'px');
+    }
+
+    //垂直下移效果的判断
+    VerticalDownMove.prototype.judge = function() {
+        if (this.index >= this.arr.length * 2) {
+            this.index = this.arr.length;
+            css(this.box, 'top', -(this.index - 1) * parseInt(this.h) + 'px');
+        } else if (this.index <= this.arr.length - 1) {
+            this.index = this.arr.length * 2 - 1;
+            css(this.box, 'top', -(this.index + 1) * parseInt(this.h) + 'px');
+        }
+    }
 
     // 淡入淡出效果
     function Fade(el, arr, op) {
