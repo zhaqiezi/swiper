@@ -158,6 +158,33 @@ function fadeOut(el, t, f) {
         }
     }, time);
 }
+
+function fix(el, styles) {
+    var ms = '-ms-';
+    var moz = '-moz-';
+    var webkit = '-webkit-';
+    var o = '-o-';
+    var oStyles = {};
+    for (var key in styles) {
+        if (!styles.hasOwnProperty(key)) continue;
+        oStyles[key] = styles[key];
+        oStyles[ms + key] = styles[key];
+        oStyles[moz + key] = styles[key];
+        oStyles[webkit + key] = styles[key];
+        oStyles[o + key] = styles[key];
+    }
+    css(el, oStyles);
+}
+
+function rotateIn(el, t, f) {
+    var stys = {
+        transform: rotateY(90)
+    };
+}
+
+function rotateOut(el, t, f) {
+
+}
 // 定义轮播图
 var swiper = (function() {
     // 构造函数
@@ -395,7 +422,7 @@ var swiper = (function() {
     // 垂直方向下移
     function VerticalDownMove(el, arr, op) {
         Banner.call(this, el, arr, op);
-        this.index = arr.length * 2 - op.index; //轮播的索引
+        this.curIndex = arr.length * 2 - op.index; //轮播的索引
     }
     extend(Banner, VerticalDownMove);
 
@@ -410,33 +437,9 @@ var swiper = (function() {
         css(this.box, {
             'width': this.w,
             'hight': parseInt(this.h) * this.arr.length * 3 + 'px',
-            'top': -this.index * parseInt(this.h) + 'px'
+            'top': -this.curIndex * parseInt(this.h) + 'px'
         });
         return this;
-    }
-
-    // 设置定时器
-    VerticalDownMove.prototype.setTimer = function() {
-        var self = this;
-        this.timer = setInterval(function() {
-            if (self.status) {
-                self.pIndex = self.index;
-                self.index--;
-                self.offset();
-            }
-        }, self.options.wTime + self.options.tTime);
-        return this;
-    }
-
-    // 改变分页器选中样式
-    VerticalDownMove.prototype.dotChange = function() {
-        var self = this;
-        if (self.dots) {
-            for (var i = 0; i < self.dots.length; i++) {
-                removeClass(self.dots[i], 'active')
-            }
-            addClass(self.dots[self.arr.length * 2 - 1 - self.index], 'active');
-        }
     }
 
     // 垂直下移的动画效果
@@ -444,9 +447,10 @@ var swiper = (function() {
         var self = this;
         this.status = 0;
         this.judge();
+        this.curIndex = this.arr.length * 3 - 1 - this.index;
         this.dotChange();
         animation(this.box, {
-            'top': -this.index * parseInt(this.h) + 'px'
+            'top': -this.curIndex * parseInt(this.h) + 'px'
         }, this.options.tTime, function() {
             self.status = 1;
         }, 'px');
@@ -456,10 +460,12 @@ var swiper = (function() {
     VerticalDownMove.prototype.judge = function() {
         if (this.index >= this.arr.length * 2) {
             this.index = this.arr.length;
-            css(this.box, 'top', -(this.index - 1) * parseInt(this.h) + 'px');
+            var curIndex = this.curIndex = this.arr.length * 3 - 1 - this.index;
+            css(this.box, 'top', -(curIndex + 1) * parseInt(this.h) + 'px');
         } else if (this.index <= this.arr.length - 1) {
             this.index = this.arr.length * 2 - 1;
-            css(this.box, 'top', -(this.index + 1) * parseInt(this.h) + 'px');
+            var curIndex = this.curIndex = this.arr.length * 3 - 1 - this.index;
+            css(this.box, 'top', -(curIndex - 1) * parseInt(this.h) + 'px');
         }
     }
 
@@ -542,6 +548,87 @@ var swiper = (function() {
             this.offset();
         }
     }
+
+    // 翻转效果
+    function Turn(el, arr, op) {
+        Banner.call(this, el, arr, op);
+    }
+
+    extend(Banner, Rotate);
+
+    // 设置单独样式
+    Rotate.prototype.setStyles = function() {
+        var mask = document.createElement('div');
+        css(mask, {
+            'position': 'absolute',
+            'left': '0',
+            'top': '0',
+            'width': this.w,
+            'height': this.h,
+            'zIndex': '0',
+            'backgroundColor': '#ccc'
+        });
+        this.box.appendChild(mask);
+        var allItem = this.allItem;
+        css(this.box, {
+            'width': '100%',
+            'hight': '100%'
+        });
+        for (var i = 0; i < allItem.length; i++) {
+            css(allItem[i], {
+                'position': 'absolute',
+                'left': '0',
+                'top': '0',
+                'zIndex': '-1'
+            });
+            setOpacity(allItem[i], 0);
+        }
+        setOpacity(allItem[this.index], 100);
+        css(allItem[this.index], 'zIndex', '1');
+        return this;
+    }
+
+    // 翻转动画效果
+    Rotate.prototype.offset = function() {
+        var self = this;
+        var els = self.allItem;
+        var t = self.options.tTime / 2;
+        self.status = 0;
+        self.judge();
+        self.dotChange();
+        for (var i = 0; i < els.length; i++) {
+            setOpacity(els[i], 0);
+            css(els[i], 'zIndex', '-1');
+        }
+        if (self.index == self.pIndex) {
+            css(els[self.index], 'zIndex', '1');
+            setOpacity(els[self.index], 100);
+            self.status = 1;
+        } else {
+            css(els[self.pIndex], 'zIndex', '1');
+            fadeOut(els[self.pIndex], t, function() {
+                fadeIn(els[self.index], t, function() {
+                    self.status = 1;
+                })
+            })
+        }
+    }
+
+    //翻转效果的判断
+    Rotate.prototype.judge = function() {
+        var self = this;
+        var els = this.allItem;
+        if (this.index >= this.arr.length * 2) {
+            self.pIndex = this.index - 1;
+            this.index = this.arr.length;
+            this.offset();
+        } else if (this.index <= this.arr.length - 1) {
+            self.pIndex = this.index + 1;
+            this.index = this.arr.length * 2 - 1;
+            this.offset();
+        }
+    }
+
 
     // 默认值
     var defaultO = {
