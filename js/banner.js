@@ -178,12 +178,19 @@ function fix(el, styles) {
 
 function rotateIn(el, t, f) {
     var stys = {
-        transform: rotateY(90)
+        'transform': 'rotateY(0) translateX(0)',
+        'transition': 'transform ' + t + 'ms'
     };
+    fix(el, stys);
+    f && typeof f == 'function' && setTimeout(f, t);
 }
 
 function rotateOut(el, t, f) {
-
+    var stys = {
+        'transform': 'rotateY(-90deg) translateX(-100%)'
+    }
+    fix(el, stys);
+    f && typeof f == 'function' && setTimeout(f, t);
 }
 // 定义轮播图
 var swiper = (function() {
@@ -550,7 +557,7 @@ var swiper = (function() {
     }
 
     // 翻转效果
-    function Turn(el, arr, op) {
+    function Rotate(el, arr, op) {
         Banner.call(this, el, arr, op);
     }
 
@@ -558,33 +565,22 @@ var swiper = (function() {
 
     // 设置单独样式
     Rotate.prototype.setStyles = function() {
-        var mask = document.createElement('div');
-        css(mask, {
-            'position': 'absolute',
-            'left': '0',
-            'top': '0',
-            'width': this.w,
-            'height': this.h,
-            'zIndex': '0',
-            'backgroundColor': '#ccc'
-        });
-        this.box.appendChild(mask);
         var allItem = this.allItem;
         css(this.box, {
             'width': '100%',
             'hight': '100%'
         });
         for (var i = 0; i < allItem.length; i++) {
-            css(allItem[i], {
+            fix(allItem[i], {
                 'position': 'absolute',
                 'left': '0',
                 'top': '0',
-                'zIndex': '-1'
-            });
-            setOpacity(allItem[i], 0);
+                'transform': 'rotateY(90deg)'
+            })
         }
-        setOpacity(allItem[this.index], 100);
-        css(allItem[this.index], 'zIndex', '1');
+        fix(allItem[this.index], {
+            'transform': 'rotateY(0) translateX(0)'
+        })
         return this;
     }
 
@@ -592,26 +588,34 @@ var swiper = (function() {
     Rotate.prototype.offset = function() {
         var self = this;
         var els = self.allItem;
-        var t = self.options.tTime / 2;
+        var t = self.options.tTime;
         self.status = 0;
         self.judge();
         self.dotChange();
-        for (var i = 0; i < els.length; i++) {
-            setOpacity(els[i], 0);
-            css(els[i], 'zIndex', '-1');
-        }
+        // for (var i = 0; i < els.length; i++) {
+        //     setOpacity(els[i], 0);
+        //     css(els[i], 'zIndex', '-1');
+        // }
         if (self.index == self.pIndex) {
-            css(els[self.index], 'zIndex', '1');
-            setOpacity(els[self.index], 100);
             self.status = 1;
         } else {
-            css(els[self.pIndex], 'zIndex', '1');
-            fadeOut(els[self.pIndex], t, function() {
-                fadeIn(els[self.index], t, function() {
-                    self.status = 1;
+            // css(els[self.pIndex], 'zIndex', '1');
+            // fadeOut(els[self.pIndex], t, function() {
+            //     fadeIn(els[self.index], t, function() {
+            //         self.status = 1;
+            //     })
+            // })
+            rotateOut(els[self.pIndex], t, function() {
+                fix(els[self.pIndex], {
+                    'transform': 'rotateY(90deg)',
+                    'transition': 'trasform 0s'
                 })
-            })
+            });
+            rotateIn(els[self.index], t, function() {
+                self.status = 1;
+            });
         }
+
     }
 
     //翻转效果的判断
@@ -621,11 +625,11 @@ var swiper = (function() {
         if (this.index >= this.arr.length * 2) {
             self.pIndex = this.index - 1;
             this.index = this.arr.length;
-            this.offset();
+            // this.offset();
         } else if (this.index <= this.arr.length - 1) {
             self.pIndex = this.index + 1;
             this.index = this.arr.length * 2 - 1;
-            this.offset();
+            // this.offset();
         }
     }
 
@@ -647,7 +651,8 @@ var swiper = (function() {
         'up': VerticalUpMove,
         'left': LevelMove,
         'down': VerticalDownMove,
-        'fade': Fade
+        'fade': Fade,
+        'rotate': Rotate
     }
 
     // 初始化
