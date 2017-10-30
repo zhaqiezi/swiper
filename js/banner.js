@@ -25,7 +25,13 @@ var addHandler = function(element, type, handler) {
     }
 }
 
-// 选择器
+/**
+ * 仿jquery的选择器
+ * 支持类选择器，ID选择器和标签选择器，支持子元素选择，不支持多个类选择和关系选择。
+ * @param {.class或者#id或者tag} selector 选择器,用来选择元素 
+ * @param {dom元素} parent 选择器的父元素,用来精确选择,如果是子元素选择器,则是必须的
+ * @returns 返回一个存储dom元素的数组,是数组,不是dom对象
+ */
 function selectEl(selector, parent) {
     var pr = selector.substring(0, 1);
     var s = selector.substring(1);
@@ -51,7 +57,12 @@ function selectEl(selector, parent) {
     return arr;
 }
 
-// 合并两个对象的函数
+/**
+ * 用原生js合并两个对象
+ * @param {object} o 合并对象中的被覆盖对象 
+ * @param {object} p 合并对象中的覆盖对象
+ * @returns 返回一个合并后的新对象
+ */
 var combineObj = function(o, p) {
     var obj = {};
     for (prop in o) {
@@ -71,7 +82,7 @@ var addClass = function(el, cls) {
     }
 }
 
-//清除class
+//清除class 
 var removeClass = function(el, cls) {
     var reg = new RegExp("(^|\\s)" + cls + "($|\\s)");
     if (reg.test(el.className)) {
@@ -202,8 +213,8 @@ var swiper = (function() {
         this.timer = null; //轮播定时器
         this.cTimer = null; //动画效果定时器
         this.index = options.index + arr.length - 1; //轮播的索引
-        this.w = css(el, 'width'); //宽度
-        this.h = css(el, 'height'); //高度
+        this.w = css(el, 'width'); //最外层的宽度
+        this.h = css(el, 'height'); //最外层的高度
         this.status = 1; //定时器运行的状态
         this.pIndex = this.index; //前一个索引
     }
@@ -643,7 +654,8 @@ var swiper = (function() {
         arrow: true, //是否添加上下翻页箭头
         dots: true, //是否添加分页器
         event: 'click', //分页器的事件类型
-        autoPlay: true //是否自动播放
+        autoPlay: true, //是否自动播放
+        lazy: false
     };
 
     //调用方式 
@@ -660,17 +672,19 @@ var swiper = (function() {
         var op = combineObj(defaultO, options);
         var wraps = selectEl(options.el);
         var wrap;
+        var banner; //存储实例
+        var arr = []; //存储元素
         for (var n = 0; n < wraps.length; n++) {
             wrap = wraps[n];
-            var el = wrap.getElementsByTagName('*');
-            var arr = [];
-            var banner;
-            for (var i = 0; i < el.length; i++) {
-                if (el[i].parentNode == wrap) {
-                    arr.push(el[i]);
+            if (op.data) {
+                for (var i = 0; i < op.data.length; i++) {
+                    var img = document.createElement('img');
+                    img.src = op.data[i];
+                    arr.push(img);
                 }
+            } else {
+                arr = selectEl('>*', wrap);
             }
-
             if (!Way[op.way]) {
                 banner = new Way['left'](wrap, arr, op)
             } else {
