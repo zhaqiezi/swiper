@@ -132,7 +132,12 @@ var animation = function(el, o, t, f, dw) {
     }, 10)
 };
 
-// 设置透明度
+/**
+ * 设置元素的透明度
+ * 
+ * @param {dom} ele 需要设置透明度的元素
+ * @param {number} opacity 透明度的值,0到100
+ */
 function setOpacity(ele, opacity) {
     if (ele.style.opacity != undefined) {
         ///兼容FF和GG和新版本IE 
@@ -169,7 +174,11 @@ function fadeOut(el, t, f) {
         }
     }, time);
 }
-
+/**
+ * 为元素设置有浏览器前缀的属性,调用函数css
+ * @param {dom元素} el 需要设置的元素 
+ * @param {Object} styles 需要更改的样式,用对象的方式写 
+ */
 function fix(el, styles) {
     var ms = '-ms-';
     var moz = '-moz-';
@@ -214,7 +223,9 @@ var swiper = (function() {
         this.cTimer = null; //动画效果定时器
         this.index = options.index + arr.length - 1; //轮播的索引
         this.w = css(el, 'width'); //最外层的宽度
+        this.wShow = parseInt(this.w) / options.show + 'px'; //展示的项目的宽度
         this.h = css(el, 'height'); //最外层的高度
+        this.hShow = parseInt(this.h) / options.show + 'px'; //展示的项目的高度
         this.status = 1; //定时器运行的状态
         this.pIndex = this.index; //前一个索引
     }
@@ -304,14 +315,14 @@ var swiper = (function() {
             addHandler(self.pre, 'click', function() {
                 if (self.status) {
                     self.pIndex = self.index;
-                    self.index--;
+                    self.index -= ops.scroll;
                     self.offset();
                 }
             });
             addHandler(this.next, 'click', function() {
                 if (self.status) {
                     self.pIndex = self.index;
-                    self.index++;
+                    self.index += ops.scroll;
                     self.offset();
                 }
             });
@@ -346,7 +357,7 @@ var swiper = (function() {
         this.timer = setInterval(function() {
             if (self.status) {
                 self.pIndex = self.index;
-                self.index++;
+                self.index += self.options.scroll;
                 self.offset();
             }
         }, self.options.wTime + self.options.tTime);
@@ -362,10 +373,14 @@ var swiper = (function() {
 
     // 设置单独样式
     LevelMove.prototype.setStyles = function() {
+        var w = this.wShow;
+        for (var i = 0; i < this.allItem.length; i++) {
+            css(this.allItem[i], 'width', w);
+        }
         css(this.box, {
             'height': this.h,
-            'width': parseInt(this.w) * this.arr.length * 3 + 'px',
-            'left': -this.index * parseInt(this.w) + 'px'
+            'width': parseInt(w) * this.arr.length * 3 + 'px',
+            'left': -this.index * parseInt(w) + 'px'
         });
         return this;
     }
@@ -377,7 +392,7 @@ var swiper = (function() {
         this.judge();
         this.dotChange();
         animation(this.box, {
-            'left': -this.index * parseInt(this.w) + 'px'
+            'left': -this.index * parseInt(this.wShow) + 'px'
         }, this.options.tTime, function() {
             self.status = 1;
         }, 'px');
@@ -385,12 +400,14 @@ var swiper = (function() {
 
     //水平平移效果的判断
     LevelMove.prototype.judge = function() {
+        var w = parseInt(this.wShow);
+        var s = this.options.scroll;
         if (this.index >= this.arr.length * 2) {
-            this.index = this.arr.length;
-            css(this.box, 'left', -(this.index - 1) * parseInt(this.w) + 'px');
+            this.index -= this.arr.length;
+            css(this.box, 'left', -(this.index - s) * w + 'px');
         } else if (this.index <= this.arr.length - 1) {
-            this.index = this.arr.length * 2 - 1;
-            css(this.box, 'left', -(this.index + 1) * parseInt(this.w) + 'px');
+            this.index += this.arr.length;
+            css(this.box, 'left', -(this.index + s) * w + 'px');
         }
     }
 
@@ -403,10 +420,14 @@ var swiper = (function() {
 
     // 设置单独样式
     VerticalUpMove.prototype.setStyles = function() {
+        var h = this.hShow;
+        for (var i = 0; i < this.allItem.length; i++) {
+            css(this.allItem[i], 'height', h);
+        }
         css(this.box, {
             'width': this.w,
-            'hight': parseInt(this.h) * this.arr.length * 3 + 'px',
-            'top': -this.index * parseInt(this.h) + 'px'
+            'hight': parseInt(h) * this.arr.length * 3 + 'px',
+            'top': -this.index * parseInt(h) + 'px'
         });
         return this;
     }
@@ -418,7 +439,7 @@ var swiper = (function() {
         this.judge();
         this.dotChange();
         animation(this.box, {
-            'top': -this.index * parseInt(this.h) + 'px'
+            'top': -this.index * parseInt(this.hShow) + 'px'
         }, this.options.tTime, function() {
             self.status = 1;
         }, 'px');
@@ -426,12 +447,14 @@ var swiper = (function() {
 
     //垂直上移效果的判断
     VerticalUpMove.prototype.judge = function() {
+        var h = parseInt(this.hShow);
+        var s = this.options.scroll;
         if (this.index >= this.arr.length * 2) {
-            this.index = this.arr.length;
-            css(this.box, 'top', -(this.index - 1) * parseInt(this.h) + 'px');
+            this.index -= this.arr.length;
+            css(this.box, 'top', -(this.index - s) * h + 'px');
         } else if (this.index <= this.arr.length - 1) {
-            this.index = this.arr.length * 2 - 1;
-            css(this.box, 'top', -(this.index + 1) * parseInt(this.h) + 'px');
+            this.index += this.arr.length;
+            css(this.box, 'top', -(this.index + s) * h + 'px');
         }
     }
 
@@ -447,15 +470,17 @@ var swiper = (function() {
     // 设置单独样式
     VerticalDownMove.prototype.setStyles = function() {
         var arr = this.allItem;
+        var h = this.hShow;
         arr.reverse();
         this.box.innerHTML = '';
         for (var i = 0; i < arr.length; i++) {
+            css(arr[i], 'height', h);
             this.box.appendChild(arr[i].cloneNode(true));
         }
         css(this.box, {
             'width': this.w,
-            'hight': parseInt(this.h) * this.arr.length * 3 + 'px',
-            'top': -this.curIndex * parseInt(this.h) + 'px'
+            'hight': parseInt(h) * this.arr.length * 3 + 'px',
+            'top': -this.curIndex * parseInt(h) + 'px'
         });
         return this;
     }
@@ -463,12 +488,13 @@ var swiper = (function() {
     // 垂直下移的动画效果
     VerticalDownMove.prototype.offset = function() {
         var self = this;
+        var s = this.options.scroll;
         this.status = 0;
         this.judge();
         this.curIndex = this.arr.length * 3 - 1 - this.index;
         this.dotChange();
         animation(this.box, {
-            'top': -this.curIndex * parseInt(this.h) + 'px'
+            'top': -this.curIndex * parseInt(this.hShow) + 'px'
         }, this.options.tTime, function() {
             self.status = 1;
         }, 'px');
@@ -476,14 +502,16 @@ var swiper = (function() {
 
     //垂直下移效果的判断
     VerticalDownMove.prototype.judge = function() {
+        var h = parseInt(this.hShow);
+        var s = this.options.scroll;
         if (this.index >= this.arr.length * 2) {
-            this.index = this.arr.length;
+            this.index -= this.arr.length;
             var curIndex = this.curIndex = this.arr.length * 3 - 1 - this.index;
-            css(this.box, 'top', -(curIndex + 1) * parseInt(this.h) + 'px');
+            css(this.box, 'top', -(curIndex + s) * h + 'px');
         } else if (this.index <= this.arr.length - 1) {
-            this.index = this.arr.length * 2 - 1;
+            this.index += this.arr.length;
             var curIndex = this.curIndex = this.arr.length * 3 - 1 - this.index;
-            css(this.box, 'top', -(curIndex - 1) * parseInt(this.h) + 'px');
+            css(this.box, 'top', -(curIndex - s) * h + 'px');
         }
     }
 
@@ -556,13 +584,14 @@ var swiper = (function() {
     Fade.prototype.judge = function() {
         var self = this;
         var els = this.allItem;
+        var s = self.options.scroll;
         if (this.index >= this.arr.length * 2) {
-            self.pIndex = this.index - 1;
-            this.index = this.arr.length;
+            self.pIndex = this.index - s;
+            this.index -= this.arr.length;
             this.offset();
         } else if (this.index <= this.arr.length - 1) {
-            self.pIndex = this.index + 1;
-            this.index = this.arr.length * 2 - 1;
+            self.pIndex = this.index + s;
+            this.index -= this.arr.length * 2 - 1;
             this.offset();
         }
     }
@@ -655,7 +684,9 @@ var swiper = (function() {
         dots: true, //是否添加分页器
         event: 'click', //分页器的事件类型
         autoPlay: true, //是否自动播放
-        lazy: false
+        lazy: false, //是否懒加载
+        scroll: 1, //一次滚动多少张
+        show: 1, //一次显示多少张
     };
 
     //调用方式 
