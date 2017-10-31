@@ -228,6 +228,9 @@ var swiper = (function() {
         this.hShow = parseInt(this.h) / options.show + 'px'; //展示的项目的高度
         this.status = 1; //定时器运行的状态
         this.pIndex = this.index; //前一个索引
+        this.end = function() {
+            this.options.end && typeof this.options.end == 'function', this.options.end(this.index - this.arr.length);
+        }
     }
 
     // 结构生成
@@ -395,6 +398,7 @@ var swiper = (function() {
             'left': -this.index * parseInt(this.wShow) + 'px'
         }, this.options.tTime, function() {
             self.status = 1;
+            self.end();
         }, 'px');
     }
 
@@ -442,6 +446,7 @@ var swiper = (function() {
             'top': -this.index * parseInt(this.hShow) + 'px'
         }, this.options.tTime, function() {
             self.status = 1;
+            self.end();
         }, 'px');
     }
 
@@ -497,6 +502,7 @@ var swiper = (function() {
             'top': -this.curIndex * parseInt(this.hShow) + 'px'
         }, this.options.tTime, function() {
             self.status = 1;
+            self.end();
         }, 'px');
     }
 
@@ -524,17 +530,6 @@ var swiper = (function() {
 
     // 设置单独样式
     Fade.prototype.setStyles = function() {
-        // var mask = document.createElement('div');
-        // css(mask, {
-        //     'position': 'absolute',
-        //     'left': '0',
-        //     'top': '0',
-        //     'width': this.w,
-        //     'height': this.h,
-        //     'zIndex': '0',
-        //     'backgroundColor': '#ccc'
-        // });
-        // this.box.appendChild(mask);
         var allItem = this.allItem;
         css(this.box, {
             'width': this.w,
@@ -575,6 +570,7 @@ var swiper = (function() {
             fadeOut(els[self.pIndex], t, function() {
                 fadeIn(els[self.index], t, function() {
                     self.status = 1;
+                    self.end();
                 })
             })
         }
@@ -687,6 +683,9 @@ var swiper = (function() {
         lazy: false, //是否懒加载
         scroll: 1, //一次滚动多少张
         show: 1, //一次显示多少张
+        end: function(i) {
+                console.log(i);
+            } //切换完成后执行的函数
     };
 
     //调用方式 
@@ -695,7 +694,7 @@ var swiper = (function() {
         'left': LevelMove,
         'down': VerticalDownMove,
         'fade': Fade,
-        'rotate': Rotate
+        // 'rotate': Rotate
     }
 
     // 初始化
