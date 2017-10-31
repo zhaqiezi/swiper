@@ -524,21 +524,21 @@ var swiper = (function() {
 
     // 设置单独样式
     Fade.prototype.setStyles = function() {
-        var mask = document.createElement('div');
-        css(mask, {
-            'position': 'absolute',
-            'left': '0',
-            'top': '0',
-            'width': this.w,
-            'height': this.h,
-            'zIndex': '0',
-            'backgroundColor': '#ccc'
-        });
-        this.box.appendChild(mask);
+        // var mask = document.createElement('div');
+        // css(mask, {
+        //     'position': 'absolute',
+        //     'left': '0',
+        //     'top': '0',
+        //     'width': this.w,
+        //     'height': this.h,
+        //     'zIndex': '0',
+        //     'backgroundColor': '#ccc'
+        // });
+        // this.box.appendChild(mask);
         var allItem = this.allItem;
         css(this.box, {
-            'width': '100%',
-            'hight': '100%'
+            'width': this.w,
+            'hight': this.h
         });
         for (var i = 0; i < allItem.length; i++) {
             css(allItem[i], {
