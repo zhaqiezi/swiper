@@ -269,7 +269,22 @@ var swiper = (function() {
         this.status = 1; //定时器运行的状态
         this.pIndex = this.index; //前一个索引
         this.end = function() {
-            this.options.end && typeof this.options.end == 'function', this.options.end(this.index - this.arr.length);
+            this.options.end && typeof this.options.end == 'function' && this.options.end(this.index - this.arr.length);
+        };
+        if (options.lazy) {
+            this.start = function(i) {
+                var index = i ? i : this.index;
+                console.log(this.allItem[index]);
+                var item = this.allItem[index]
+                item.src = item.dataset.src;
+            }
+
+        } else {
+
+            this.start = function(i) {
+                var index = i ? i : this.index;
+                this.options.start && typeof this.options.start == 'function' && this.options.start(index);
+            }
         }
     }
 
@@ -441,6 +456,7 @@ var swiper = (function() {
         this.status = 0;
         this.judge();
         this.dotChange();
+        this.start();
         swiperTools.animation(this.box, {
             'left': -this.index * parseInt(this.wShow) + 'px'
         }, this.options.tTime, function() {
@@ -489,6 +505,7 @@ var swiper = (function() {
         this.status = 0;
         this.judge();
         this.dotChange();
+        this.start();
         swiperTools.animation(this.box, {
             'top': -this.index * parseInt(this.hShow) + 'px'
         }, this.options.tTime, function() {
@@ -545,6 +562,7 @@ var swiper = (function() {
         this.judge();
         this.curIndex = this.arr.length * 3 - 1 - this.index;
         this.dotChange();
+        this.start(this.curIndex);
         swiperTools.animation(this.box, {
             'top': -this.curIndex * parseInt(this.hShow) + 'px'
         }, this.options.tTime, function() {
@@ -604,6 +622,7 @@ var swiper = (function() {
         self.status = 0;
         self.judge();
         self.dotChange();
+        this.start();
         for (var i = 0; i < els.length; i++) {
             swiperTools.setOpacity(els[i], 0);
             swiperTools.css(els[i], 'zIndex', '-1');
@@ -752,10 +771,21 @@ var swiper = (function() {
         for (var n = 0; n < wraps.length; n++) {
             wrap = wraps[n];
             if (op.data) {
-                for (var i = 0; i < op.data.length; i++) {
-                    var img = document.createElement('img');
-                    img.src = op.data[i];
-                    arr.push(img);
+                if (op.lazy) {
+                    for (var i = 0; i < op.data.length; i++) {
+                        var img = document.createElement('img');
+                        img.dataset.src = op.data[i];
+                        if (i == op.index - 1) {
+                            img.src = op.data[i];
+                        }
+                        arr.push(img);
+                    }
+                } else {
+                    for (var i = 0; i < op.data.length; i++) {
+                        var img = document.createElement('img');
+                        img.src = op.data[i];
+                        arr.push(img);
+                    }
                 }
             } else {
                 arr = swiperTools.selectEl('>*', wrap);
