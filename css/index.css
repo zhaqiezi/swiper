@@ -1,19 +1,34 @@
 body {
     margin: 0;
     padding: 0;
+    background-color: #999;
+}
+
+.wrap,.banner1,.banner2,.banner3 {
+    position: absolute;
+    width: 300px;
+    height: 300px;
 }
 
 .wrap {
-    margin: 50px 200px;
-    width: 800px;
-    height: 300px;
+    top: 50px;
+    left: 150px;
 }
 
+.banner1 {
+    top: 50px;
+    left: 700px;
+}
 
-/* .item {
-    width: 400px;
-    height: 300px;
-} */
+.banner2 {
+    top: 500px;
+    left: 150px;
+}
+
+.banner3 {
+    top: 500px;
+    left: 700px;
+}
 
 .item1 {
     background-color: #fcd;

@@ -11,31 +11,36 @@
 </head>
 
 <body>
-    <div class="wrap">
-        <!-- <div class="item item1">
-            <h1>1</h1>
-        </div>
-        <div class="item item2">
-            <h1>2</h1>
-        </div>
-        <div class="item item3">
-            <h1>3</h1>
-        </div>
-        <div class="item item4">
-            <h1>4</h1>
-        </div> -->
-    </div>
+    <div class="wrap"></div>
+    <div class="banner1"></div>
+    <div class="banner2"></div>
+    <div class="banner3"></div>
     <script src="js/banner.js"></script>
     <script>
         swiper({
             el: '.wrap',
-            way: 'fade',
+            way: 'left',
             tTime: 1000,
-            // show: 4,
             scroll: 2,
-            // lazy: true,
-            data: ['img/num1.jpg', 'img/num2.jpg', 'img/num3.jpg', 'img/num4.jpg', 'img/num5.jpg','img/img1.png', 'img/img2.png', 'img/img3.png', 'img/img4.png', 'img/img5.png', ]
+            show: 4,
+            data: ['img/num1.jpg', 'img/num2.jpg', 'img/num3.jpg', 'img/num4.jpg', 'img/num5.jpg' ]
         });
+        swiper({
+            el:'.banner1',
+            way:'up',
+            show: 4,
+            data: ['img/num1.jpg', 'img/num2.jpg', 'img/num3.jpg', 'img/num4.jpg', 'img/num5.jpg' ]
+        });
+        swiper({
+            el:'.banner2',
+            way:'down',
+            data: ['img/num1.jpg', 'img/num2.jpg', 'img/num3.jpg', 'img/num4.jpg', 'img/num5.jpg' ]
+        });
+        swiper({
+            el:'.banner3',
+            way:'fade',
+            data: ['img/num1.jpg', 'img/num2.jpg', 'img/num3.jpg', 'img/num4.jpg', 'img/num5.jpg' ]
+        })
     </script>
 </body>
 
