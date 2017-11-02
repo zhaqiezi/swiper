@@ -1,4 +1,6 @@
+// 一帧的时间,单位为ms
 var DEFAULT_INTERVAL = 1000 / 60;
+//设置一针时间的定时器
 var requestAnimationFrame = (function() {
     return window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||
@@ -9,6 +11,7 @@ var requestAnimationFrame = (function() {
         }
 })();
 
+//清楚一帧时间的定时器
 var cancelAnimationFrame = (function() {
     return window.cancelAnimationFrame ||
         window.webkitCancelAnimationFrame ||
@@ -255,17 +258,17 @@ var swiper = (function() {
         }
         this.index = options.index + length - 1; //轮播的索引
         this.w = swiperTools.css(el, 'width'); //最外层的宽度
-        if (options.show > length) {
-            options.show = 1;
+        if (options.showNum > length) {
+            options.showNum = 1;
             console.log('一次显示的数量不能超过图片的数量！');
         }
-        if (options.scroll > length) {
-            options.scroll = 1;
+        if (options.scrollNum > length) {
+            options.scrollNum = 1;
             console.log('一次滚动的数量不能超过图片的数量！');
         }
-        this.wShow = parseInt(this.w) / options.show + 'px'; //展示的项目的宽度
+        this.wShow = parseInt(this.w) / options.showNum + 'px'; //展示的项目的宽度
         this.h = swiperTools.css(el, 'height'); //最外层的高度
-        this.hShow = parseInt(this.h) / options.show + 'px'; //展示的项目的高度
+        this.hShow = parseInt(this.h) / options.showNum + 'px'; //展示的项目的高度
         this.status = 1; //定时器运行的状态
         this.pIndex = this.index; //前一个索引
         this.end = function() {
@@ -274,13 +277,17 @@ var swiper = (function() {
         if (options.lazy) {
             this.start = function(i) {
                 var index = i ? i : this.index;
-                console.log(this.allItem[index]);
-                var item = this.allItem[index]
-                item.src = item.dataset.src;
+                var item = this.allItem[index];
+                var item1 = this.allItem[index - arr.length];
+                var item2 = this.allItem[index + arr.length];
+                item.src = item.getAttribute('data-src');
+                item1.src = item.getAttribute('data-src');
+                item2.src = item.getAttribute('data-src');
+                this.options.start && typeof this.options.start == 'function' && this.options.start(index);
+
             }
 
         } else {
-
             this.start = function(i) {
                 var index = i ? i : this.index;
                 this.options.start && typeof this.options.start == 'function' && this.options.start(index);
@@ -380,14 +387,14 @@ var swiper = (function() {
             swiperTools.addHandler(self.pre, 'click', function() {
                 if (self.status) {
                     self.pIndex = self.index;
-                    self.index -= ops.scroll;
+                    self.index -= ops.scrollNum;
                     self.offset();
                 }
             });
             swiperTools.addHandler(this.next, 'click', function() {
                 if (self.status) {
                     self.pIndex = self.index;
-                    self.index += ops.scroll;
+                    self.index += ops.scrollNum;
                     self.offset();
                 }
             });
@@ -422,7 +429,7 @@ var swiper = (function() {
         this.timer = setInterval(function() {
             if (self.status) {
                 self.pIndex = self.index;
-                self.index += self.options.scroll;
+                self.index += self.options.scrollNum;
                 self.offset();
             }
         }, self.options.wTime + self.options.tTime);
@@ -468,7 +475,7 @@ var swiper = (function() {
     //水平平移效果的判断
     LevelMove.prototype.judge = function() {
         var w = parseInt(this.wShow);
-        var s = this.options.scroll;
+        var s = this.options.scrollNum;
         if (this.index >= this.arr.length * 2) {
             this.index -= this.arr.length;
             swiperTools.css(this.box, 'left', -(this.index - s) * w + 'px');
@@ -517,7 +524,7 @@ var swiper = (function() {
     //垂直上移效果的判断
     VerticalUpMove.prototype.judge = function() {
         var h = parseInt(this.hShow);
-        var s = this.options.scroll;
+        var s = this.options.scrollNum;
         if (this.index >= this.arr.length * 2) {
             this.index -= this.arr.length;
             swiperTools.css(this.box, 'top', -(this.index - s) * h + 'px');
@@ -557,7 +564,7 @@ var swiper = (function() {
     // 垂直下移的动画效果
     VerticalDownMove.prototype.offset = function() {
         var self = this;
-        var s = this.options.scroll;
+        var s = this.options.scrollNum;
         this.status = 0;
         this.judge();
         this.curIndex = this.arr.length * 3 - 1 - this.index;
@@ -574,7 +581,7 @@ var swiper = (function() {
     //垂直下移效果的判断
     VerticalDownMove.prototype.judge = function() {
         var h = parseInt(this.hShow);
-        var s = this.options.scroll;
+        var s = this.options.scrollNum;
         if (this.index >= this.arr.length * 2) {
             this.index -= this.arr.length;
             var curIndex = this.curIndex = this.arr.length * 3 - 1 - this.index;
@@ -646,7 +653,7 @@ var swiper = (function() {
     Fade.prototype.judge = function() {
         var self = this;
         var els = this.allItem;
-        var s = self.options.scroll;
+        var s = self.options.scrollNum;
         if (this.index >= this.arr.length * 2) {
             self.pIndex = this.index - s;
             this.index -= this.arr.length;
@@ -747,8 +754,8 @@ var swiper = (function() {
         event: 'click', //分页器的事件类型
         autoPlay: true, //是否自动播放
         lazy: false, //是否懒加载
-        scroll: 1, //一次滚动多少张
-        show: 1, //一次显示多少张
+        scrollNum: 1, //一次滚动多少张
+        showNum: 1, //一次显示多少张
         end: function(i) {} //切换完成后执行的函数
     };
 
@@ -774,7 +781,7 @@ var swiper = (function() {
                 if (op.lazy) {
                     for (var i = 0; i < op.data.length; i++) {
                         var img = document.createElement('img');
-                        img.dataset.src = op.data[i];
+                        img.setAttribute('data-src', op.data[i]);
                         if (i == op.index - 1) {
                             img.src = op.data[i];
                         }
