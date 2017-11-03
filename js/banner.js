@@ -7,7 +7,7 @@ var requestAnimationFrame = (function() {
         window.mozRequestAnimationFrame ||
         window.oRequestAnimationFrame ||
         function(callback) {
-            return window.setTimeout(callback, callback.interval || DEFAULT_INTERVAL);
+        return window.setTimeout(callback, callback.interval || DEFAULT_INTERVAL);
         }
 })();
 
@@ -277,12 +277,20 @@ var swiper = (function() {
         if (options.lazy) {
             this.start = function(i) {
                 var index = i ? i : this.index;
-                var item = this.allItem[index];
-                var item1 = this.allItem[index - arr.length];
-                var item2 = this.allItem[index + arr.length];
-                item.src = item.getAttribute('data-src');
-                item1.src = item.getAttribute('data-src');
-                item2.src = item.getAttribute('data-src');
+                var item, item1, item2, temp;
+                for (var j = 0; j < options.showNum; j++) {
+                    temp = index + j;
+                    item = this.allItem[temp];
+                    item.src = item.getAttribute('data-src');
+                    item1 = this.allItem[temp - arr.length];
+                    if (item1) {
+                        item1.src = item.getAttribute('data-src');
+                    }
+                    item2 = this.allItem[temp + arr.length];
+                    if (item2) {
+                        item2.src = item.getAttribute('data-src');
+                    }
+                }
                 this.options.start && typeof this.options.start == 'function' && this.options.start(index);
 
             }
@@ -454,6 +462,7 @@ var swiper = (function() {
             'width': parseInt(w) * this.arr.length * 3 + 'px',
             'left': -this.index * parseInt(w) + 'px'
         });
+        this.start();
         return this;
     }
 
@@ -503,6 +512,7 @@ var swiper = (function() {
             'hight': parseInt(h) * this.arr.length * 3 + 'px',
             'top': -this.index * parseInt(h) + 'px'
         });
+        this.start();
         return this;
     }
 
@@ -558,6 +568,7 @@ var swiper = (function() {
             'hight': parseInt(h) * this.arr.length * 3 + 'px',
             'top': -this.curIndex * parseInt(h) + 'px'
         });
+        this.start(this.curIndex);
         return this;
     }
 
@@ -618,6 +629,7 @@ var swiper = (function() {
         }
         swiperTools.setOpacity(allItem[this.index], 100);
         swiperTools.css(allItem[this.index], 'zIndex', '1');
+        this.start();
         return this;
     }
 
@@ -690,6 +702,7 @@ var swiper = (function() {
         swiperTools.fix(allItem[this.index], {
             'transform': 'rotateY(0) translateX(0)'
         })
+        this.start();
         return this;
     }
 
@@ -701,6 +714,7 @@ var swiper = (function() {
         self.status = 0;
         self.judge();
         self.dotChange();
+        this.start();
         // for (var i = 0; i < els.length; i++) {
         //     swiperTools.setOpacity(els[i], 0);
         //     swiperTools.css(els[i], 'zIndex', '-1');
@@ -782,9 +796,6 @@ var swiper = (function() {
                     for (var i = 0; i < op.data.length; i++) {
                         var img = document.createElement('img');
                         img.setAttribute('data-src', op.data[i]);
-                        if (i == op.index - 1) {
-                            img.src = op.data[i];
-                        }
                         arr.push(img);
                     }
                 } else {
