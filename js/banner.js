@@ -7,7 +7,7 @@ var requestAnimationFrame = (function() {
         window.mozRequestAnimationFrame ||
         window.oRequestAnimationFrame ||
         function(callback) {
-        return window.setTimeout(callback, callback.interval || DEFAULT_INTERVAL);
+            return window.setTimeout(callback, callback.interval || DEFAULT_INTERVAL);
         }
 })();
 
@@ -246,7 +246,7 @@ var swiperTools = {
 var swiper = (function() {
     // 构造函数
     function Banner(el, arr, options) {
-        var length = arr.length;
+        var length = arr.length; //存储轮播项的个数
         this.el = el; //最外层元素
         this.arr = arr; //原始的几个轮播项
         this.options = options; //配置
@@ -266,6 +266,7 @@ var swiper = (function() {
             options.scrollNum = 1;
             console.log('一次滚动的数量不能超过图片的数量！');
         }
+        this.num = 0; //用于图片导航索引的
         this.wShow = parseInt(this.w) / options.showNum + 'px'; //展示的项目的宽度
         this.h = swiperTools.css(el, 'height'); //最外层的高度
         this.hShow = parseInt(this.h) / options.showNum + 'px'; //展示的项目的高度
@@ -340,7 +341,7 @@ var swiper = (function() {
             var dotList = document.createElement('ul');
             dotList.className = 'dots-list';
             var dots = '';
-            for (var i = 0; i < this.arr.length; i++) {
+            for (var i = 0; i < this.arr.length - this.num; i++) {
                 dots = dots + '<li class="dot-item">' + (i + 1) + '</li>';
             }
             dotList.innerHTML = dots;
@@ -378,9 +379,9 @@ var swiper = (function() {
         }
         if (ops.dots) {
             for (var i = 0; i < this.dots.length; i++) {
-                this.dots[i].index = i + this.arr.length;
-                (function(i) {
-                    var index = i + self.arr.length;
+                this.dots[i].index = i + this.arr.length + this.num;
+                (function() {
+                    var index = i + self.arr.length + self.num;
                     swiperTools.addHandler(self.dots[i], self.options.event, function() {
                         if (self.status) {
                             self.pIndex = self.index;
@@ -388,7 +389,7 @@ var swiper = (function() {
                             self.offset();
                         }
                     })
-                }(i));
+                }());
             }
         }
         if (ops.arrow) {
@@ -417,7 +418,9 @@ var swiper = (function() {
             for (var i = 0; i < self.dots.length; i++) {
                 swiperTools.removeClass(self.dots[i], 'active')
             }
-            swiperTools.addClass(self.dots[self.index - self.arr.length], 'active');
+            var index = self.index - self.arr.length - self.num;
+            if (index < 0) index = 0;
+            swiperTools.addClass(self.dots[index], 'active');
         }
     }
 
