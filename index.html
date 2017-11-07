@@ -11,7 +11,12 @@
 </head>
 
 <body>
-    <div class="wrap"></div>
+    <div class="wrap">
+        <div class="item"><img src="img/num1.jpg" alt=""></div>
+        <div class="item item-show"></div>
+        <div class="item"><img src="img/num3.jpg" alt=""></div>
+        <div class="item"><img src="img/num4.jpg" alt=""></div>
+    </div>
     <div class="banner1"></div>
     <div class="banner2"></div>
     <div class="banner3"></div>
@@ -21,11 +26,17 @@
             el: '.wrap',
             way: 'left',
             tTime: 1000,
-            showNum: 4,
-            scrollNum:2,
+            // showNum: 5,
+            // scrollNum:2,
             lazy:true,
-            data: ['https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1004259923,3810739738&fm=27&gp=0.jpg', 'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=3511835212,3030687243&fm=27&gp=0.jpg', 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1509541161288&di=54dac69d3cba7fbc7c220a027af84d34&imgtype=jpg&src=http%3A%2F%2Fimg4.imgtn.bdimg.com%2Fit%2Fu%3D660414558%2C1171548186%26fm%3D214%26gp%3D0.jpg', 'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1510903536,4207996975&fm=27&gp=0.jpg', 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1509541176311&di=50d74c4a867cc18769e9d998c083aa19&imgtype=jpg&src=http%3A%2F%2Fimg2.imgtn.bdimg.com%2Fit%2Fu%3D2574492486%2C2935240651%26fm%3D214%26gp%3D0.jpg' ]
+            // data: ['https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1004259923,3810739738&fm=27&gp=0.jpg', 'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=3511835212,3030687243&fm=27&gp=0.jpg', 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1509541161288&di=54dac69d3cba7fbc7c220a027af84d34&imgtype=jpg&src=http%3A%2F%2Fimg4.imgtn.bdimg.com%2Fit%2Fu%3D660414558%2C1171548186%26fm%3D214%26gp%3D0.jpg', 'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1510903536,4207996975&fm=27&gp=0.jpg', 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1509541176311&di=50d74c4a867cc18769e9d998c083aa19&imgtype=jpg&src=http%3A%2F%2Fimg2.imgtn.bdimg.com%2Fit%2Fu%3D2574492486%2C2935240651%26fm%3D214%26gp%3D0.jpg' ]
         });
+        swiper({
+            el:'.item-show',
+            way:'up',
+            // autoPlay:false,
+            data: ['https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1004259923,3810739738&fm=27&gp=0.jpg', 'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=3511835212,3030687243&fm=27&gp=0.jpg', 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1509541161288&di=54dac69d3cba7fbc7c220a027af84d34&imgtype=jpg&src=http%3A%2F%2Fimg4.imgtn.bdimg.com%2Fit%2Fu%3D660414558%2C1171548186%26fm%3D214%26gp%3D0.jpg', 'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1510903536,4207996975&fm=27&gp=0.jpg', 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1509541176311&di=50d74c4a867cc18769e9d998c083aa19&imgtype=jpg&src=http%3A%2F%2Fimg2.imgtn.bdimg.com%2Fit%2Fu%3D2574492486%2C2935240651%26fm%3D214%26gp%3D0.jpg' ]
+        })
         swiper({
             el:'.banner1',
             way:'up',

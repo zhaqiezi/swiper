@@ -791,8 +791,9 @@ var swiper = (function() {
         var wraps = swiperTools.selectEl(options.el);
         var wrap;
         var banner; //存储实例
-        var arr = []; //存储元素
+        var arr //存储元素
         for (var n = 0; n < wraps.length; n++) {
+            arr = [];
             wrap = wraps[n];
             if (op.data) {
                 if (op.lazy) {
